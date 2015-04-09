@@ -26,15 +26,15 @@ from zmq import ZMQError
 
 from IPython.core import page
 from IPython.core import release
-from IPython.terminal.console.zmqhistory import ZMQHistoryManager
+from jupyter_console.zmqhistory import ZMQHistoryManager
 from IPython.utils.warn import warn, error
 from IPython.utils import io
-from IPython.utils.py3compat import string_types, input
-from IPython.utils.traitlets import List, Enum, Any, Instance, Unicode, Float, Bool
-from IPython.utils.tempdir import NamedFileInTemporaryDirectory
+from ipython_genutils.py3compat import string_types, input
+from traitlets import List, Enum, Any, Instance, Unicode, Float, Bool
+from ipython_genutils.tempdir import NamedFileInTemporaryDirectory
 
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
-from IPython.terminal.console.completer import ZMQCompleter
+from jupyter_console.completer import ZMQCompleter
 
 class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
     """A subclass of TerminalInteractiveShell that uses the 0MQ kernel"""

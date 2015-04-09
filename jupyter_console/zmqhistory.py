@@ -12,7 +12,7 @@
 #-----------------------------------------------------------------------------
 
 from IPython.core.history import HistoryAccessorBase
-from IPython.utils.traitlets import Dict, List
+from traitlets import Dict, List
 
 try:
     from queue import Empty  # Py 3

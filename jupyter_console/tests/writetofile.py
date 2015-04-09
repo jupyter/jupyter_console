@@ -19,7 +19,7 @@ If INPUT is '-', stdin is used.
 
 if __name__ == '__main__':
     import sys
-    from IPython.utils.py3compat import PY3
+    from ipython_genutils.py3compat import PY3
     (inpath, outpath) = sys.argv[1:]
 
     if inpath == '-':

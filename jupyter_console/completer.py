@@ -9,10 +9,10 @@ try:
 except ImportError:
     from Queue import Empty  # Py 2
 
-from IPython.config import Configurable
+from traitlets.config import Configurable
 from IPython.core.completer import IPCompleter
-from IPython.utils.py3compat import str_to_unicode, unicode_to_str, cast_bytes, cast_unicode
-from IPython.utils.traitlets import Float
+from ipython_genutils.py3compat import str_to_unicode, unicode_to_str, cast_bytes, cast_unicode
+from traitlets import Float
 import IPython.utils.rlineimpl as readline
 
 class ZMQCompleter(IPCompleter):

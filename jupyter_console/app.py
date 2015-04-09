@@ -11,24 +11,25 @@ import signal
 
 from IPython.terminal.ipapp import TerminalIPythonApp, frontend_flags as term_flags
 
-from IPython.utils.traitlets import (
+from traitlets import (
     Dict, Any
 )
 from IPython.utils.warn import error
 
-from IPython.consoleapp import (
-        IPythonConsoleApp, app_aliases, app_flags, aliases, flags
+from jupyter_core.application import JupyterApp
+from jupyter_client.consoleapp import (
+        JupyterConsoleApp, app_aliases, app_flags, aliases, flags
     )
 
-from IPython.terminal.console.interactiveshell import ZMQTerminalInteractiveShell
+from jupyter_console.interactiveshell import ZMQTerminalInteractiveShell
 
 #-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
 
 _examples = """
-ipython console # start the ZMQ-based console
-ipython console --existing # connect to an existing ipython session
+jupyter console # start the ZMQ-based console
+jupyter console --existing # connect to an existing ipython session
 """
 
 #-----------------------------------------------------------------------------
@@ -65,12 +66,12 @@ frontend_flags = set(frontend_flags.keys())
 #-----------------------------------------------------------------------------
 
 
-class ZMQTerminalIPythonApp(TerminalIPythonApp, IPythonConsoleApp):
-    name = "ipython-console"
+class ZMQTerminalIPythonApp(TerminalIPythonApp, JupyterApp, JupyterConsoleApp):
+    name = "jupyter-console"
     """Start a terminal frontend to the IPython zmq kernel."""
 
     description = """
-        The IPython terminal-based Console.
+        The Jupyter terminal-based Console.
 
         This launches a Console application inside a terminal.
 
@@ -78,7 +79,7 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, IPythonConsoleApp):
         single-process Terminal IPython shell, such as connecting to an
         existing ipython session, via:
 
-            ipython console --existing
+            jupyter console --existing
 
         where the previous session could have been created by another ipython
         console, an ipython qtconsole, or by opening an ipython notebook.
@@ -86,7 +87,7 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, IPythonConsoleApp):
     """
     examples = _examples
 
-    classes = [ZMQTerminalInteractiveShell] + IPythonConsoleApp.classes
+    classes = [ZMQTerminalInteractiveShell] + JupyterConsoleApp.classes
     flags = Dict(flags)
     aliases = Dict(aliases)
     frontend_aliases = Any(frontend_aliases)
@@ -101,7 +102,7 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, IPythonConsoleApp):
         self.build_kernel_argv(self.extra_args)
 
     def init_shell(self):
-        IPythonConsoleApp.initialize(self)
+        JupyterConsoleApp.initialize(self)
         # relay sigint to kernel
         signal.signal(signal.SIGINT, self.handle_sigint)
         self.shell = ZMQTerminalInteractiveShell.instance(parent=self,
@@ -138,9 +139,9 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, IPythonConsoleApp):
         pass
 
 
-launch_new_instance = ZMQTerminalIPythonApp.launch_instance
+main = launch_new_instance = ZMQTerminalIPythonApp.launch_instance
 
 
 if __name__ == '__main__':
-    launch_new_instance()
+    main()
 

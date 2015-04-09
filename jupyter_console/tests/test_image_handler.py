@@ -12,10 +12,10 @@ except ImportError:
     from mock import patch
 
 from IPython.kernel import KernelClient
-from IPython.terminal.console.interactiveshell import ZMQTerminalInteractiveShell
-from IPython.utils.tempdir import TemporaryDirectory
-from IPython.testing.decorators import skip_without
-from IPython.utils.ipstruct import Struct
+from jupyter_console.interactiveshell import ZMQTerminalInteractiveShell
+from ipython_genutils.tempdir import TemporaryDirectory
+from ipython_genutils.testing.decorators import skip_without
+from ipython_genutils.ipstruct import Struct
 
 
 SCRIPT_PATH = os.path.join(

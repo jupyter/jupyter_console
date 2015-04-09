@@ -8,11 +8,11 @@ import sys
 from nose import SkipTest
 
 from traitlets.tests.utils import check_help_all_output
-from IPython.testing import decorators as dec
+from ipython_genutils.testing import decorators as dec
 
 @dec.skip_win32
 def test_console_starts():
-    """test that `ipython console` starts a terminal"""
+    """test that `jupyter console` starts a terminal"""
     p, pexpect, t = start_console()
     p.sendline('5')
     idx = p.expect([r'Out\[\d+\]: 5', pexpect.EOF], timeout=t)
@@ -20,7 +20,7 @@ def test_console_starts():
     stop_console(p, pexpect, t)
 
 def test_help_output():
-    """ipython console --help-all works"""
+    """jupyter console --help-all works"""
     check_help_all_output('jupyter_console')
 
 def test_display_text():
@@ -37,7 +37,7 @@ def test_display_text():
     stop_console(p, pexpect, t)
 
 def stop_console(p, pexpect, t):
-    "Stop a running `ipython console` running via pexpect"
+    "Stop a running `jupyter console` running via pexpect"
     # send ctrl-D;ctrl-D to exit
     p.sendeof()
     p.sendeof()
@@ -47,10 +47,10 @@ def stop_console(p, pexpect, t):
 
 
 def start_console():
-    "Start `ipython console` using pexpect"
+    "Start `jupyter console` using pexpect"
     import pexpect
     
-    args = ['-m', 'IPython', 'console', '--colors=NoColor']
+    args = ['-m', 'jupyter_console', '--colors=NoColor']
     cmd = sys.executable
     
     try:
