@@ -10,6 +10,6 @@ install:
     - pip install -f travis-wheels/wheelhouse -e . coveralls -r requirements.txt
     - python -c 'import ipython_kernel.kernelspec; ipython_kernel.kernelspec.install(user=True)'
 script:
-    - nosetests --with-coverage jupyter_console
+    - nosetests --with-coverage --cover-package=jupyter_console jupyter_console
 after_success:
     - coveralls
