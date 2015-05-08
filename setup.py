@@ -77,7 +77,7 @@ setuptools_args = {}
 install_requires = setuptools_args['install_requires'] = [
     'jupyter_client',
     'ipython',
-    'ipython_kernel',
+    'ipykernel', # bless IPython kernel for now
 ]
 
 extras_require = setuptools_args['extras_require'] = {
