@@ -11,7 +11,11 @@ These options can be set in ``~/.jupyter/jupyter_console_config.py``, or
 at the command line when you start it.
 """
 
-destination = os.path.join(os.path.dirname(__file__), 'config_options.rst')
+try:
+    indir = os.path.dirname(__file__)
+except NameError:
+    indir = os.getcwd()
+destination = os.path.join(indir, 'config_options.rst')
 
 with open(destination, 'w') as f:
     f.write(header)
