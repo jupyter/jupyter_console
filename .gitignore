@@ -3,6 +3,7 @@ build
 dist
 _build
 docs/gh-pages
+docs/config_options.rst
 *.py[co]
 __pycache__
 *.egg-info
