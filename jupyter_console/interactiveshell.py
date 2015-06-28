@@ -433,7 +433,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
             self.client.shutdown()
 
     def _banner1_default(self):
-        return "IPython Console {version}\n".format(version=release.version)
+        return "Jupyter Console {version}\n".format(version=release.version)
     
     def compute_banner(self):
         super(ZMQTerminalInteractiveShell, self).compute_banner()
