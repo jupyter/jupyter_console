@@ -22,6 +22,7 @@ from jupyter_client.consoleapp import (
     )
 
 from jupyter_console.interactiveshell import ZMQTerminalInteractiveShell
+from jupyter_console import __version__
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -68,6 +69,7 @@ frontend_flags = set(frontend_flags.keys())
 
 class ZMQTerminalIPythonApp(TerminalIPythonApp, JupyterApp, JupyterConsoleApp):
     name = "jupyter-console"
+    version = __version__
     """Start a terminal frontend to the IPython zmq kernel."""
 
     description = """
