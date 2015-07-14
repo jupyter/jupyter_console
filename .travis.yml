@@ -7,8 +7,8 @@ sudo: false
 before_install:
     - git clone --quiet --depth 1 https://github.com/minrk/travis-wheels travis-wheels
 install:
-    - pip install -f travis-wheels/wheelhouse -e . coveralls -r requirements.txt
-    - python -c 'import ipykernel.kernelspec; ipykernel.kernelspec.install(user=True)'
+    - pip install -f travis-wheels/wheelhouse --pre -e . coveralls
+    - python -m ipykernel.kernelspec --user
 script:
     - nosetests --with-coverage --cover-package=jupyter_console jupyter_console
 after_success:
