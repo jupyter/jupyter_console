@@ -25,7 +25,6 @@ except ImportError:
 from zmq import ZMQError
 
 from IPython.core import page
-from IPython.core import release
 from jupyter_console.zmqhistory import ZMQHistoryManager
 from IPython.utils.warn import warn, error
 from IPython.utils import io
@@ -35,6 +34,7 @@ from ipython_genutils.tempdir import NamedFileInTemporaryDirectory
 
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
 from jupyter_console.completer import ZMQCompleter
+from jupyter_console import __version__
 
 class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
     """A subclass of TerminalInteractiveShell that uses the 0MQ kernel"""
@@ -433,7 +433,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
             self.client.shutdown()
 
     def _banner1_default(self):
-        return "Jupyter Console {version}\n".format(version=release.version)
+        return "Jupyter Console {version}\n".format(version=__version__)
     
     def compute_banner(self):
         super(ZMQTerminalInteractiveShell, self).compute_banner()
