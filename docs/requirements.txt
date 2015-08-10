@@ -1,1 +1,2 @@
---pre -e .
+-e git://github.com/ipython/ipython#egg=ipython
+-e .
