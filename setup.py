@@ -86,7 +86,7 @@ extras_require = setuptools_args['extras_require'] = {
 
 }
 
-setup_args['entry_points'] = {
+setuptools_args['entry_points'] = {
         'console_scripts': [
             'jupyter-console = jupyter_console:main',
         ]
@@ -94,6 +94,8 @@ setup_args['entry_points'] = {
 
 if 'setuptools' in sys.modules:
     setup_args.update(setuptools_args)
+    setup_args.pop('scripts')
+
 
 if __name__ == '__main__':
     setup(**setup_args)
