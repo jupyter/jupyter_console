@@ -88,7 +88,7 @@ extras_require = setuptools_args['extras_require'] = {
 
 setuptools_args['entry_points'] = {
         'console_scripts': [
-            'jupyter-console = jupyter_console:main',
+            'jupyter-console = jupyter_console.app:main',
         ]
 }
 
