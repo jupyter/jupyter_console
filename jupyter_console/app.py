@@ -16,9 +16,9 @@ from traitlets import (
 )
 from IPython.utils.warn import error
 
-from jupyter_core.application import JupyterApp
+from jupyter_core.application import JupyterApp, base_aliases, base_flags, NoStart
 from jupyter_client.consoleapp import (
-        JupyterConsoleApp, app_aliases, app_flags, aliases, flags
+        JupyterConsoleApp, app_aliases, app_flags,
     )
 
 from jupyter_console.interactiveshell import ZMQTerminalInteractiveShell
@@ -38,7 +38,7 @@ jupyter console --existing # connect to an existing ipython session
 #-----------------------------------------------------------------------------
 
 # copy flags from mixin:
-flags = dict(flags)
+flags = dict(base_flags)
 # start with mixin frontend flags:
 frontend_flags = dict(app_flags)
 # add TerminalIPApp flags:
@@ -49,7 +49,7 @@ frontend_flags.pop('quick')
 flags.update(frontend_flags)
 
 # copy flags from mixin
-aliases = dict(aliases)
+aliases = dict(base_aliases)
 # start with mixin frontend flags
 frontend_aliases = dict(app_aliases)
 # load updated frontend flags into full dict
@@ -88,6 +88,7 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, JupyterApp, JupyterConsoleApp):
 
     """
     examples = _examples
+    _config_file_name_default = JupyterApp._config_file_name_default
 
     classes = [ZMQTerminalInteractiveShell] + JupyterConsoleApp.classes
     flags = Dict(flags)
@@ -104,6 +105,8 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, JupyterApp, JupyterConsoleApp):
         self.build_kernel_argv(self.extra_args)
 
     def init_shell(self):
+        if self._dispatching:
+            raise NoStart()
         JupyterConsoleApp.initialize(self)
         # relay sigint to kernel
         signal.signal(signal.SIGINT, self.handle_sigint)
@@ -135,11 +138,21 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, JupyterApp, JupyterConsoleApp):
             # raise the KeyboardInterrupt if we aren't waiting for execution,
             # so that the interact loop advances, and prompt is redrawn, etc.
             raise KeyboardInterrupt
-            
+    
+    def initialize(self, argv=None):
+        try:
+            super(ZMQTerminalIPythonApp, self).initialize(argv)
+        except NoStart:
+            pass
 
     def init_code(self):
         # no-op in the frontend, code gets run in the backend
         pass
+    
+    def start(self):
+        # JupyterApp.start dispatches on NoStart
+        JupyterApp.start(self)
+        super(ZMQTerminalIPythonApp, self).start()
 
 
 main = launch_new_instance = ZMQTerminalIPythonApp.launch_instance

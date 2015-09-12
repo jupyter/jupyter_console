@@ -3,7 +3,11 @@
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+import os
+import shutil
 import sys
+import tempfile
+from subprocess import check_output
 
 from nose import SkipTest
 
@@ -62,3 +66,15 @@ def start_console():
     t = 60
     idx = p.expect([r'In \[\d+\]', pexpect.EOF], timeout=t)
     return p, pexpect, t
+
+
+def test_generate_config():
+    """jupyter console --generate-config works"""
+    td = tempfile.mkdtemp()
+    try:
+        check_output([sys.executable, '-m', 'jupyter_console', '--generate-config'],
+            env={'JUPYTER_CONFIG_DIR': td},
+        )
+        assert os.path.isfile(os.path.join(td, 'jupyter_console_config.py'))
+    finally:
+        shutil.rmtree(td)
