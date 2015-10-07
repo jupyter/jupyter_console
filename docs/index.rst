@@ -37,4 +37,5 @@ Contents:
    :maxdepth: 2
 
    config_options
+   changelog
 
