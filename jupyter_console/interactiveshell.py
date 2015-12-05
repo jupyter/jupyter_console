@@ -115,6 +115,10 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         self.session_id = new.session.session
     session_id = Unicode()
 
+    def __init__(self, *args, **kwargs):
+        super(TerminalInteractiveShell, self).__init__(*args, **kwargs)
+        self._source = ''
+
     def init_completer(self):
         """Initialize the completion machinery.
 
@@ -219,6 +223,43 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                 pass
 
             self.execution_count = int(content["execution_count"] + 1)
+
+    def handle_is_complete_reply(self, msg_id, timeout=None):
+        """
+        `complete` - code is ready to be executed
+        `incomplete` - code should prompt for another line
+        `invalid` - code will typically be sent for execution, so that the user sees the error soonest.
+        `unknown` - if the kernel is not able to determine this. The
+                    frontend should also handle the kernel not replying promptly. It
+                    may default to sending the code for execution, or it may implement
+                    simple fallback heuristics for whether to execute the code
+                    (e.g. execute after a blank line).
+
+        self._source is the code in question.
+        return more, indent
+        """
+        ## Get the is_complete response:
+        msg = None
+        while self.client.is_alive():
+            try:
+                msg = self.client.shell_channel.get_msg(block=False, timeout=timeout)
+            except Empty:
+                continue
+            if msg["parent_header"].get("msg_id", None) == msg_id:
+                break
+        ## Handle response:
+        status = msg["content"].get("status", None)
+        indent = msg["content"].get("indent", "")
+        if status == "complete":
+            return False, indent
+        elif status == "incomplete":
+            return True, indent
+        elif status == "invalid":
+            raise SyntaxError()
+        elif status == "unknown":
+            return True, indent
+        else:
+            raise Exception("")
 
     include_other_output = Bool(False, config=True,
         help="""Whether to include output from clients
@@ -551,7 +592,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                 #double-guard against keyboardinterrupts during kbdint handling
                 try:
                     self.write('\n' + self.get_exception_only())
-                    source_raw = self.input_splitter.raw_reset()
+                    source_raw = self.get_source_and_reset() 
                     hlen_b4_cell = self._replace_rlhist_multiline(source_raw, hlen_b4_cell)
                     more = False
                 except KeyboardInterrupt:
@@ -574,8 +615,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                 self.showtraceback()
             else:
                 try:
-                    self.input_splitter.push(line)
-                    more = self.input_splitter.push_accepts_more()
+                    more, indent = self.handle_source(line) 
                 except SyntaxError:
                     # Run the code directly - run_cell takes care of displaying
                     # the exception.
@@ -584,7 +624,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                     self.autoedit_syntax):
                     self.edit_syntax_error()
                 if not more:
-                    source_raw = self.input_splitter.raw_reset()
+                    source_raw = self.get_source_and_reset() 
                     hlen_b4_cell = self._replace_rlhist_multiline(source_raw, hlen_b4_cell)
                     self.run_cell(source_raw)
 
@@ -597,3 +637,21 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         self.history_manager = ZMQHistoryManager(client=self.client)
         self.configurables.append(self.history_manager)
 
+    def get_source_and_reset(self):
+        """
+        get and reset source input line(s)
+        """
+        source, self._source = self._source, ''
+        return source
+
+    def handle_source(self, line):
+        """
+        more, indent
+        """
+        ## Ask client if line is complete; get indent for next line:
+        if self._source:
+            self._source += "\n"
+        self._source += line
+        msg_id = self.client.is_complete(self._source)
+        more, indent = self.handle_is_complete_reply(msg_id, timeout=0.05)
+        return more, indent
