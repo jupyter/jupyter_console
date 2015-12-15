@@ -123,7 +123,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
     session_id = Unicode()
 
     def __init__(self, *args, **kwargs):
-        super(TerminalInteractiveShell, self).__init__(*args, **kwargs)
+        super(ZMQTerminalInteractiveShell, self).__init__(*args, **kwargs)
         self._source_lines_buffered = []
 
     def init_completer(self):
@@ -250,7 +250,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
             return False, ""
         ## Handle response:
         if msg["parent_header"].get("msg_id", None) != msg_id:
-            warn('The kernel did not respond properly to an is_complete_request.')
+            warn('The kernel did not respond properly to an is_complete_request: %s.' % str(msg))
             return False, ""
         else:
             status = msg["content"].get("status", None)
