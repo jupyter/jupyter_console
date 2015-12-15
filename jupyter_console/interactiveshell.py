@@ -241,21 +241,17 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         """
         ## Get the is_complete response:
         msg = None
-        count = 0
-        max_tries = 5
-        while self.client.is_alive() and count < max_tries:
-            try:
-                msg = self.client.shell_channel.get_msg(block=False, timeout=timeout)
-            except Empty:
-                continue
-            if msg["parent_header"].get("msg_id", None) == msg_id:
-                break
-            count += 1
+        try:
+            msg = self.client.shell_channel.get_msg(block=True, timeout=timeout)
+        except Empty:
+            warn('The kernel did not respond to an is_complete_request. '
+                 'Setting `use_kernel_is_complete` to False.')
+            self.use_kernel_is_complete = False
+            return False, ""
         ## Handle response:
-        if count == max_tries:
-            warn('The kernel did not respond to an is_complete_request.')
-            status = "unknown"
-            indent = ""
+        if msg["parent_header"].get("msg_id", None) != msg_id:
+            warn('The kernel did not respond properly to an is_complete_request.')
+            return False, ""
         else:
             status = msg["content"].get("status", None)
             indent = msg["content"].get("indent", "")
@@ -269,7 +265,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         elif status == "unknown":
             return False, indent
         else:
-            warn('The kernel sent an invalid is_complete_reply.')
+            warn('The kernel sent an invalid is_complete_reply status: "%s".' % status)
             return False, indent
 
     include_other_output = Bool(False, config=True,
@@ -652,23 +648,19 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         """
         Get the source code entered so far, and reset source input line(s).
         """
-        if self.use_kernel_is_complete:
-            source, self._source_lines_buffered = self._source_lines_buffered, []
-            return "\n".join(source)
-        else:
-            return self.input_splitter.raw_reset()
+        source, self._source_lines_buffered = self._source_lines_buffered, []
+        return "\n".join(source)
 
     def handle_source(self, line):
         """
         Save the line with previous source lines, and see if more
         input is needed. Returns more? and indent_string.
         """
+        self._source_lines_buffered.append(line)
         ## Ask client if line is complete; get indent for next line:
         if self.use_kernel_is_complete:
-            self._source_lines_buffered.append(line)
             msg_id = self.client.is_complete("\n".join(self._source_lines_buffered))
             return self.handle_is_complete_reply(msg_id, timeout=0.05)
         else:
-            self.input_splitter.push(line)
-            more = self.input_splitter.push_accepts_more()
+            more = (line != "")
             return more, ""
