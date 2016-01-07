@@ -453,6 +453,9 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
             signal.signal(signal.SIGINT, double_int)
             content = req['content']
             read = getpass if content.get('password', False) else input
+            if self.has_readline:
+                # Disable tab completion while we prompt for arbitrary input
+                self.readline.set_completer(None)
             try:
                 raw_data = read(content["prompt"])
             except EOFError:
@@ -464,6 +467,9 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
             finally:
                 # restore SIGINT handler
                 signal.signal(signal.SIGINT, real_handler)
+                # Restore tab completion ready for our next input prompt
+                if self.has_readline:
+                    self.set_readline_completer()
 
             # only send stdin reply if there *was not* another request
             # or execution finished while we were reading.
