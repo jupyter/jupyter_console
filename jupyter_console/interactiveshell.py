@@ -115,6 +115,15 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         own is_complete handler.
         """
     )
+    kernel_is_complete_timeout = Float(1, config=True,
+        help="""Timeout (in seconds) for giving up on a kernel's is_complete
+        response.
+
+        If the kernel does not respond at any point within this time,
+        the kernel will no longer be asked if code is complete, and the
+        console will default to the built-in is_complete test.
+        """
+    )
 
     manager = Instance('jupyter_client.KernelManager', allow_none=True)
     client = Instance('jupyter_client.KernelClient', allow_none=True)
@@ -660,7 +669,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         ## Ask client if line is complete; get indent for next line:
         if self.use_kernel_is_complete:
             msg_id = self.client.is_complete("\n".join(self._source_lines_buffered))
-            return self.handle_is_complete_reply(msg_id, timeout=0.05)
+            return self.handle_is_complete_reply(msg_id, timeout=self.kernel_is_complete_timeout)
         else:
             more = (line != "")
             return more, ""
