@@ -10,8 +10,6 @@ input, there is no real readline support, among other limitations.
 import logging
 import signal
 
-from IPython.terminal.ipapp import TerminalIPythonApp, frontend_flags as term_flags
-
 from traitlets import (
     Dict, Any
 )
@@ -43,10 +41,6 @@ jupyter console --existing # connect to an existing ipython session
 flags = dict(base_flags)
 # start with mixin frontend flags:
 frontend_flags = dict(app_flags)
-# add TerminalIPApp flags:
-frontend_flags.update(term_flags)
-# disable quick startup, as it won't propagate to the kernel anyway
-frontend_flags.pop('quick')
 # update full dict with frontend flags:
 flags.update(frontend_flags)
 
