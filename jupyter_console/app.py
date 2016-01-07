@@ -100,8 +100,6 @@ class ZMQTerminalIPythonApp(JupyterApp, JupyterConsoleApp):
         self.build_kernel_argv(self.extra_args)
 
     def init_shell(self):
-        if self._dispatching:
-            raise NoStart()
         JupyterConsoleApp.initialize(self)
         # relay sigint to kernel
         signal.signal(signal.SIGINT, self.handle_sigint)
@@ -137,6 +135,8 @@ class ZMQTerminalIPythonApp(JupyterApp, JupyterConsoleApp):
     def initialize(self, argv=None):
         """Do actions after construct, but before starting the app."""
         super(ZMQTerminalIPythonApp, self).initialize(argv)
+        if self._dispatching:
+            return
         # create the shell
         self.init_shell()
         # and draw the banner
