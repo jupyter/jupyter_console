@@ -7,13 +7,13 @@ input, there is no real readline support, among other limitations.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+import logging
 import signal
-
-from IPython.terminal.ipapp import TerminalIPythonApp, frontend_flags as term_flags
 
 from traitlets import (
     Dict, Any
 )
+from traitlets.config import catch_config_error
 from IPython.utils.warn import error
 
 from jupyter_core.application import JupyterApp, base_aliases, base_flags, NoStart
@@ -41,10 +41,6 @@ jupyter console --existing # connect to an existing ipython session
 flags = dict(base_flags)
 # start with mixin frontend flags:
 frontend_flags = dict(app_flags)
-# add TerminalIPApp flags:
-frontend_flags.update(term_flags)
-# disable quick startup, as it won't propagate to the kernel anyway
-frontend_flags.pop('quick')
 # update full dict with frontend flags:
 flags.update(frontend_flags)
 
@@ -67,7 +63,7 @@ frontend_flags = set(frontend_flags.keys())
 #-----------------------------------------------------------------------------
 
 
-class ZMQTerminalIPythonApp(TerminalIPythonApp, JupyterApp, JupyterConsoleApp):
+class ZMQTerminalIPythonApp(JupyterApp, JupyterConsoleApp):
     name = "jupyter-console"
     version = __version__
     """Start a terminal frontend to the IPython zmq kernel."""
@@ -88,7 +84,6 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, JupyterApp, JupyterConsoleApp):
 
     """
     examples = _examples
-    _config_file_name_default = JupyterApp._config_file_name_default
 
     classes = [ZMQTerminalInteractiveShell] + JupyterConsoleApp.classes
     flags = Dict(flags)
@@ -105,14 +100,11 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, JupyterApp, JupyterConsoleApp):
         self.build_kernel_argv(self.extra_args)
 
     def init_shell(self):
-        if self._dispatching:
-            raise NoStart()
         JupyterConsoleApp.initialize(self)
         # relay sigint to kernel
         signal.signal(signal.SIGINT, self.handle_sigint)
         self.shell = ZMQTerminalInteractiveShell.instance(parent=self,
-                        display_banner=False, profile_dir=self.profile_dir,
-                        ipython_dir=self.ipython_dir,
+                        display_banner=False,
                         manager=self.kernel_manager,
                         client=self.kernel_client,
         )
@@ -133,21 +125,29 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, JupyterApp, JupyterConsoleApp):
             # raise the KeyboardInterrupt if we aren't waiting for execution,
             # so that the interact loop advances, and prompt is redrawn, etc.
             raise KeyboardInterrupt
-    
-    def initialize(self, argv=None):
-        try:
-            super(ZMQTerminalIPythonApp, self).initialize(argv)
-        except NoStart:
-            pass
 
-    def init_code(self):
-        # no-op in the frontend, code gets run in the backend
-        pass
+    @catch_config_error
+    def initialize(self, argv=None):
+        """Do actions after construct, but before starting the app."""
+        super(ZMQTerminalIPythonApp, self).initialize(argv)
+        if self._dispatching:
+            return
+        # create the shell
+        self.init_shell()
+        # and draw the banner
+        self.init_banner()
+
+    def init_banner(self):
+        """optionally display the banner"""
+        self.shell.show_banner()
+        # Make sure there is a space below the banner.
+        if self.log_level <= logging.INFO: print()
     
     def start(self):
         # JupyterApp.start dispatches on NoStart
-        JupyterApp.start(self)
         super(ZMQTerminalIPythonApp, self).start()
+        self.log.debug("Starting the jupyter console mainloop...")
+        self.shell.mainloop()
 
 
 main = launch_new_instance = ZMQTerminalIPythonApp.launch_instance
