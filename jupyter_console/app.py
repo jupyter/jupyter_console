@@ -125,12 +125,7 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, JupyterApp, JupyterConsoleApp):
     def handle_sigint(self, *args):
         if self.shell._executing:
             if self.kernel_manager:
-                # interrupt already gets passed to subprocess by signal handler.
-                # Only if we prevent that should we need to explicitly call
-                # interrupt_kernel, until which time, this would result in a 
-                # double-interrupt:
-                # self.kernel_manager.interrupt_kernel()
-                pass
+                self.kernel_manager.interrupt_kernel()
             else:
                 self.shell.write_err('\n')
                 error("Cannot interrupt kernels we didn't start.\n")
