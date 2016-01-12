@@ -539,6 +539,11 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                 return False
         return True
 
+    _next_line_indent = ''
+
+    def _indent_current_str(self):
+        return self._next_line_indent
+
     def interact(self, display_banner=None):
         """Closely emulate the interactive Python console."""
 
@@ -598,6 +603,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                         self.rl_do_indent = True
 
                 else:
+                    self._next_line_indent = ''
                     try:
                         prompt = self.separate_in + self.prompt_manager.render('in')
                     except Exception:
@@ -645,6 +651,8 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                 if (self.SyntaxTB.last_syntax_error and
                     self.autoedit_syntax):
                     self.edit_syntax_error()
+                if more:
+                    self._next_line_indent = indent
                 if not more:
                     source_raw = self.get_source_and_reset()
                     hlen_b4_cell = self._replace_rlhist_multiline(source_raw, hlen_b4_cell)
