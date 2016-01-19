@@ -687,3 +687,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         else:
             more = (line != "")
             return more, ""
+
+    def init_virtualenv(self):
+        # No need to do this in the frontend, and the warning is confusing
+        pass
