@@ -2,6 +2,13 @@
 from __future__ import print_function
 
 import sys
+import time
+from warnings import warn
+
+try:
+    from queue import Empty  # Py 3
+except ImportError:
+    from Queue import Empty  # Py 2
 
 from IPython.utils.py3compat import PY3, cast_unicode_py2
 from traitlets import Bool, Integer, Unicode, Dict
@@ -22,8 +29,23 @@ from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.styles import PygmentsStyle
 
 from pygments.styles import get_style_by_name
-from pygments.lexers import Python3Lexer, PythonLexer
+from pygments.lexers import find_lexer_class
 from pygments.token import Token
+
+def get_pygments_lexer(name):
+    if name == 'ipython2':
+        from IPython.lib.lexers import IPythonLexer
+        return IPythonLexer
+    elif name == 'ipython3':
+        from IPython.lib.lexers import IPython3Lexer
+        return IPython3Lexer
+    else:
+        cls = find_lexer_class(name)
+        if cls is None:
+            warn("No lexer found for language %r. Treating as plain text." % name)
+            from pygments.lexers.special import TextLexer
+            return TextLexer
+        return cls
 
 
 class IPythonPTCompleter(Completer):
@@ -66,6 +88,7 @@ class PTInteractiveShell(ZMQTerminalInteractiveShell):
 
     def __init__(self, **kwargs):
         super(PTInteractiveShell, self).__init__(**kwargs)
+        self.init_kernel_info()
         self.init_prompt_toolkit_cli()
         self.keep_running = True
 
@@ -80,6 +103,24 @@ class PTInteractiveShell(ZMQTerminalInteractiveShell):
         return [
             (Token.Prompt, (' ' * (width - 2)) + ': '),
         ]
+
+    kernel_info = {}
+    def init_kernel_info(self):
+        """Wait for a kernel to be ready, and store kernel info"""
+        timeout = self.kernel_timeout
+        tic = time.time()
+        self.client.hb_channel.unpause()
+        msg_id = self.client.kernel_info()
+        while True:
+            try:
+                reply = self.client.get_shell_msg(timeout=1)
+            except Empty:
+                if (time.time() - tic) > timeout:
+                    raise RuntimeError("Kernel didn't respond to kernel_info_request")
+            else:
+                if reply['parent_header'].get('msg_id') == msg_id:
+                    self.kernel_info = reply['content']
+                    return
 
     def init_prompt_toolkit_cli(self):
         kbmanager = KeyBindingManager.for_prompt(enable_vi_mode=self.vi_mode)
@@ -142,8 +183,10 @@ class PTInteractiveShell(ZMQTerminalInteractiveShell):
         style = PygmentsStyle.from_defaults(pygments_style_cls=style_cls,
                                             style_dict=style_overrides)
 
+        langinfo = self.kernel_info.get('language_info', {})
+        lexer = langinfo.get('pygments_lexer', langinfo.get('name', None))
         app = create_prompt_application(multiline=True,
-                            lexer=PygmentsLexer(Python3Lexer if PY3 else PythonLexer),
+                            lexer=PygmentsLexer(get_pygments_lexer(lexer)),
                             get_prompt_tokens=self.get_prompt_tokens,
                             get_continuation_tokens=self.get_continuation_tokens,
                             key_bindings_registry=kbmanager.registry,
@@ -173,13 +216,6 @@ class PTInteractiveShell(ZMQTerminalInteractiveShell):
             self.rl_next_input = None
 
     def interact(self, display_banner=None):
-        # run a non-empty no-op, so that we don't get a prompt until
-        # we know the kernel is ready. This keeps the connection
-        # message above the first prompt.
-        if not self.wait_for_kernel(self.kernel_timeout):
-            print("Kernel did not respond\n", file=sys.stderr)
-            return
-
         while self.keep_running:
             print('\n', end='')
 
