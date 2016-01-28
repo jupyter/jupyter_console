@@ -67,6 +67,7 @@ class JupyterPTCompleter(Completer):
 
 class PTInteractiveShell(ZMQTerminalInteractiveShell):
     colors_force = True
+    readline_use = False
 
     pt_cli = None
 
