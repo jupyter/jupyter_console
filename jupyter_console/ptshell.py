@@ -29,10 +29,11 @@ from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.styles import PygmentsStyle
 
 from pygments.styles import get_style_by_name
-from pygments.lexers import find_lexer_class
+from pygments.lexers import LEXERS, find_lexer_class
 from pygments.token import Token
 
 def get_pygments_lexer(name):
+    name = name.lower()
     if name == 'ipython2':
         from IPython.lib.lexers import IPythonLexer
         return IPythonLexer
@@ -40,12 +41,13 @@ def get_pygments_lexer(name):
         from IPython.lib.lexers import IPython3Lexer
         return IPython3Lexer
     else:
-        cls = find_lexer_class(name)
-        if cls is None:
-            warn("No lexer found for language %r. Treating as plain text." % name)
-            from pygments.lexers.special import TextLexer
-            return TextLexer
-        return cls
+        for module_name, cls_name, aliases, _, _ in LEXERS.values():
+            if name in aliases:
+                return find_lexer_class(cls_name)
+
+        warn("No lexer found for language %r. Treating as plain text." % name)
+        from pygments.lexers.special import TextLexer
+        return TextLexer
 
 
 class JupyterPTCompleter(Completer):
