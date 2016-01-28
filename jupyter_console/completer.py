@@ -15,6 +15,15 @@ from ipython_genutils.py3compat import str_to_unicode, unicode_to_str, cast_byte
 from traitlets import Float
 import IPython.utils.rlineimpl as readline
 
+def _construct_readline_matches(code, cursor_pos, content):
+    cursor_start = content['cursor_start']
+    matches = [ code[:cursor_start] + m for m in content['matches'] ]
+    if content["cursor_end"] < cursor_pos:
+        extra = code[content["cursor_end"]: cursor_pos]
+        matches = [m + extra for m in matches]
+    matches = [ unicode_to_str(m) for m in matches ]
+    return matches
+
 class ZMQCompleter(IPCompleter):
     """Client-side completion machinery.
 
@@ -36,38 +45,32 @@ class ZMQCompleter(IPCompleter):
         if self.readline:
             self.readline.set_completer_delims('\r\n')
     
-    def complete_request(self, text):
-        line = str_to_unicode(readline.get_line_buffer())
-        byte_cursor_pos = readline.get_endidx()
-        
-        # get_endidx is a byte offset
-        # account for multi-byte characters to get correct cursor_pos
-        bytes_before_cursor = cast_bytes(line)[:byte_cursor_pos]
-        cursor_pos = len(cast_unicode(bytes_before_cursor))
-        
+    def complete_request(self, code, cursor_pos):
         # send completion request to kernel
         # Give the kernel up to 5s to respond
         msg_id = self.client.complete(
-            code=line,
+            code=code,
             cursor_pos=cursor_pos,
         )
     
         msg = self.client.shell_channel.get_msg(timeout=self.timeout)
         if msg['parent_header']['msg_id'] == msg_id:
-            content = msg['content']
-            cursor_start = content['cursor_start']
-            matches = [ line[:cursor_start] + m for m in content['matches'] ]
-            if content["cursor_end"] < cursor_pos:
-                extra = line[content["cursor_end"]: cursor_pos]
-                matches = [m + extra for m in matches]
-            matches = [ unicode_to_str(m) for m in matches ]
-            return matches
-        return []
+            return msg['content']
+
+        return {'matches': [], 'cursor_start': 0, 'cursor_end': 0,
+                'metadata': {}, 'status': 'ok'}
     
     def rlcomplete(self, text, state):
         if state == 0:
+            line = str_to_unicode(readline.get_line_buffer())
+            byte_cursor_pos = readline.get_endidx()
+            # get_endidx is a byte offset
+            # account for multi-byte characters to get correct cursor_pos
+            bytes_before_cursor = cast_bytes(line)[:byte_cursor_pos]
+            cursor_pos = len(cast_unicode(bytes_before_cursor))
             try:
-                self.matches = self.complete_request(text)
+                content = self.complete_request(line, cursor_pos)
+                self.matches = _construct_readline_matches(line, cursor_pos, content)
             except Empty:
                 #print('WARNING: Kernel timeout on tab completion.')
                 pass
@@ -76,6 +79,4 @@ class ZMQCompleter(IPCompleter):
             return self.matches[state]
         except IndexError:
             return None
-    
-    def complete(self, text, line, cursor_pos=None):
-        return self.rlcomplete(text, 0)
+

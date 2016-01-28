@@ -48,21 +48,21 @@ def get_pygments_lexer(name):
         return cls
 
 
-class IPythonPTCompleter(Completer):
-    """Adaptor to provide IPython completions to prompt_toolkit"""
-    def __init__(self, ipy_completer):
-        self.ipy_completer = ipy_completer
+class JupyterPTCompleter(Completer):
+    """Adaptor to provide kernel completions to prompt_toolkit"""
+    def __init__(self, jup_completer):
+        self.jup_completer = jup_completer
 
     def get_completions(self, document, complete_event):
         if not document.current_line.strip():
             return
 
-        used, matches = self.ipy_completer.complete(
-                            line_buffer=document.current_line,
-                            cursor_pos=document.cursor_position_col
+        content = self.jup_completer.complete_request(
+                            code=document.text,
+                            cursor_pos=document.cursor_position
         )
-        start_pos = -len(used)
-        for m in matches:
+        start_pos = content['cursor_start'] - document.cursor_position
+        for m in content['matches']:
             yield Completion(m, start_position=start_pos)
 
 class PTInteractiveShell(ZMQTerminalInteractiveShell):
@@ -191,7 +191,7 @@ class PTInteractiveShell(ZMQTerminalInteractiveShell):
                             get_continuation_tokens=self.get_continuation_tokens,
                             key_bindings_registry=kbmanager.registry,
                             history=history,
-                            completer=IPythonPTCompleter(self.Completer),
+                            completer=JupyterPTCompleter(self.Completer),
                             enable_history_search=True,
                             style=style,
         )
