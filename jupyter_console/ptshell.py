@@ -173,6 +173,13 @@ class PTInteractiveShell(ZMQTerminalInteractiveShell):
             self.rl_next_input = None
 
     def interact(self, display_banner=None):
+        # run a non-empty no-op, so that we don't get a prompt until
+        # we know the kernel is ready. This keeps the connection
+        # message above the first prompt.
+        if not self.wait_for_kernel(self.kernel_timeout):
+            print("Kernel did not respond\n", file=sys.stderr)
+            return
+
         while self.keep_running:
             print('\n', end='')
 
