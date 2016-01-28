@@ -139,12 +139,12 @@ class PTInteractiveShell(ZMQTerminalInteractiveShell):
                 b.newline()
                 return
 
-            status, indent = self.input_splitter.check_complete(d.text)
+            more, indent = self.check_complete(d.text)
 
-            if (status != 'incomplete') and b.accept_action.is_returnable:
+            if (not more) and b.accept_action.is_returnable:
                 b.accept_action.validate_and_handle(event.cli, b)
             else:
-                b.insert_text('\n' + (' ' * (indent or 0)))
+                b.insert_text('\n' + indent)
 
         @kbmanager.registry.add_binding(Keys.ControlC)
         def _(event):
@@ -204,6 +204,17 @@ class PTInteractiveShell(ZMQTerminalInteractiveShell):
 
         import colorama
         colorama.init()
+
+    def check_complete(self, code):
+        if self.use_kernel_is_complete:
+            msg_id = self.client.is_complete(code)
+            try:
+                return self.handle_is_complete_reply(msg_id, timeout=self.kernel_is_complete_timeout)
+            except SyntaxError:
+                return False, ""
+        else:
+            more = (code.splitlines()[-1] != "")
+            return more, ""
 
     def ask_exit(self):
         self.keep_running = False
