@@ -570,8 +570,8 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
 
         if self.has_readline:
             self.readline_startup_hook(self.pre_readline)
-            hlen_b4_cell = self.readline.get_current_history_length()
             self.refill_readline_hist()
+            hlen_b4_cell = self.readline.get_current_history_length()
         else:
             hlen_b4_cell = 0
         # exit_now is set by a call to %Exit or %Quit, through the
