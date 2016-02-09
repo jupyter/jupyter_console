@@ -7,6 +7,8 @@ input, there is no real readline support, among other limitations.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+from __future__ import print_function
+
 import logging
 import signal
 
