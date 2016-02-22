@@ -191,7 +191,9 @@ class PTInteractiveShell(ZMQTerminalInteractiveShell):
         app = create_prompt_application(multiline=True,
                             lexer=PygmentsLexer(get_pygments_lexer(lexer)),
                             get_prompt_tokens=self.get_prompt_tokens,
-                            get_continuation_tokens=self.get_continuation_tokens,
+                            # Uncomment this when there's a new release of
+                            # prompt_toolkit (> 0.57)
+                            #get_continuation_tokens=self.get_continuation_tokens,
                             key_bindings_registry=kbmanager.registry,
                             history=history,
                             completer=JupyterPTCompleter(self.Completer),
