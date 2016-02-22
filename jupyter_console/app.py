@@ -21,7 +21,7 @@ from jupyter_client.consoleapp import (
         JupyterConsoleApp, app_aliases, app_flags,
     )
 
-from jupyter_console.interactiveshell import ZMQTerminalInteractiveShell
+from jupyter_console.ptshell import PTInteractiveShell as ZMQTerminalInteractiveShell
 from jupyter_console import __version__
 
 #-----------------------------------------------------------------------------
