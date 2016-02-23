@@ -1,6 +1,7 @@
 """IPython terminal interface using prompt_toolkit in place of readline"""
 from __future__ import print_function
 
+import os
 import sys
 import time
 from warnings import warn
@@ -126,6 +127,14 @@ class PTInteractiveShell(ZMQTerminalInteractiveShell):
                     return
 
     def init_prompt_toolkit_cli(self):
+        if 'JUPYTER_CONSOLE_TEST' in os.environ:
+            # Simple restricted interface for tests so we can find prompts with
+            # pexpect. Multi-line input not supported.
+            def prompt():
+                return cast_unicode_py2(input('In [%d]: ' % self.execution_count))
+            self.prompt_for_code = prompt
+            return
+
         kbmanager = KeyBindingManager.for_prompt(enable_vi_mode=self.vi_mode)
         insert_mode = ViStateFilter(kbmanager.get_vi_state, InputMode.INSERT)
         # Ctrl+J == Enter, seemingly
@@ -203,6 +212,10 @@ class PTInteractiveShell(ZMQTerminalInteractiveShell):
 
         self.pt_cli = CommandLineInterface(app)
 
+    def prompt_for_code(self):
+        document = self.pt_cli.run(pre_run=self.pre_prompt)
+        return document.text
+
     def init_io(self):
         if sys.platform not in {'win32', 'cli'}:
             return
@@ -236,14 +249,14 @@ class PTInteractiveShell(ZMQTerminalInteractiveShell):
             print('\n', end='')
 
             try:
-                document = self.pt_cli.run(pre_run=self.pre_prompt)
+                code = self.prompt_for_code()
             except EOFError:
                 if self.ask_yes_no('Do you really want to exit ([y]/n)?','y','n'):
                     self.ask_exit()
 
             else:
-                if document:
-                    self.run_cell(document.text, store_history=True)
+                if code:
+                    self.run_cell(code, store_history=True)
 
     def mainloop(self):
         # An extra layer of protection in case someone mashing Ctrl-C breaks

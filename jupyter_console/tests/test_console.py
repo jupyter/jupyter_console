@@ -56,9 +56,11 @@ def start_console():
     
     args = ['-m', 'jupyter_console', '--colors=NoColor']
     cmd = sys.executable
-    
+    env = os.environ.copy()
+    env['JUPYTER_CONSOLE_TEST'] = '1'
+
     try:
-        p = pexpect.spawn(cmd, args=args)
+        p = pexpect.spawn(cmd, args=args, env=env)
     except IOError:
         raise SkipTest("Couldn't find command %s" % cmd)
     
