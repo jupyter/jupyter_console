@@ -6,6 +6,12 @@ A summary of changes in Jupyter console releases.
 4.1
 ---
 
+4.1.1
+~~~~~
+
+- fix for readline history
+- don't confuse sys.path with virtualenvs
+
 4.1.0
 ~~~~~
 
