@@ -23,7 +23,7 @@ from jupyter_client.consoleapp import (
         JupyterConsoleApp, app_aliases, app_flags,
     )
 
-from jupyter_console.ptshell import PTInteractiveShell as ZMQTerminalInteractiveShell
+from jupyter_console.ptshell import ZMQTerminalInteractiveShell
 from jupyter_console import __version__
 
 #-----------------------------------------------------------------------------
@@ -106,7 +106,6 @@ class ZMQTerminalIPythonApp(JupyterApp, JupyterConsoleApp):
         # relay sigint to kernel
         signal.signal(signal.SIGINT, self.handle_sigint)
         self.shell = ZMQTerminalInteractiveShell.instance(parent=self,
-                        display_banner=False,
                         manager=self.kernel_manager,
                         client=self.kernel_client,
         )
