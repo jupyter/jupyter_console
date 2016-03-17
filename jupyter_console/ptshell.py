@@ -333,7 +333,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                                             style_dict=style_overrides)
 
         langinfo = self.kernel_info.get('language_info', {})
-        lexer = langinfo.get('pygments_lexer', langinfo.get('name', None))
+        lexer = langinfo.get('pygments_lexer', langinfo.get('name', 'text'))
         app = create_prompt_application(multiline=True,
                             lexer=PygmentsLexer(get_pygments_lexer(lexer)),
                             get_prompt_tokens=self.get_prompt_tokens,

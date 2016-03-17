@@ -11,8 +11,7 @@ try:
 except ImportError:
     from mock import patch
 
-from jupyter_client import KernelClient
-from jupyter_console.interactiveshell import ZMQTerminalInteractiveShell
+from jupyter_console.ptshell import ZMQTerminalInteractiveShell
 from ipython_genutils.tempdir import TemporaryDirectory
 from ipython_genutils.testing.decorators import skip_without
 from ipython_genutils.ipstruct import Struct
@@ -21,12 +20,16 @@ from ipython_genutils.ipstruct import Struct
 SCRIPT_PATH = os.path.join(
     os.path.abspath(os.path.dirname(__file__)), 'writetofile.py')
 
+class NonCommunicatingShell(ZMQTerminalInteractiveShell):
+    """A testing shell class that doesn't attempt to communicate with the kernel"""
+    def init_kernel_info(self):
+        pass
+
 
 class ZMQTerminalInteractiveShellTestCase(unittest.TestCase):
 
     def setUp(self):
-        client = KernelClient()
-        self.shell = ZMQTerminalInteractiveShell(kernel_client=client)
+        self.shell = NonCommunicatingShell()
         self.raw = b'dummy data'
         self.mime = 'image/png'
         self.data = {self.mime: base64.encodestring(self.raw).decode('ascii')}
