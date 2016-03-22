@@ -278,6 +278,16 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             (Token.Prompt, (' ' * (width - 2)) + ': '),
         ]
 
+    def get_out_prompt_tokens(self):
+        return [
+            (Token.OutPrompt, 'Out['),
+            (Token.OutPromptNum, str(self.execution_count)),
+            (Token.OutPrompt, ']: ')
+        ]
+
+    def print_out_prompt(self):
+        self.pt_cli.print_tokens(self.get_out_prompt_tokens())
+
     kernel_info = {}
     def init_kernel_info(self):
         """Wait for a kernel to be ready, and store kernel info"""
@@ -307,6 +317,8 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             def prompt():
                 return cast_unicode_py2(input('In [%d]: ' % self.execution_count))
             self.prompt_for_code = prompt
+            self.print_out_prompt = \
+                lambda: print('Out[%d]: ' % self.execution_count, end='')
             return
 
         kbmanager = KeyBindingManager.for_prompt(enable_vi_mode=self.vi_mode)
@@ -349,6 +361,8 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         style_overrides = {
             Token.Prompt: '#009900',
             Token.PromptNum: '#00ff00 bold',
+            Token.OutPrompt: '#ff2200',
+            Token.OutPromptNum: '#ff0000 bold',
         }
         if self.highlighting_style:
             style_cls = get_style_by_name(self.highlighting_style)
@@ -640,8 +654,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                     if 'text/plain' not in format_dict:
                         continue
 
-                    # TODO: reinstate colour in out prompt
-                    print('Out[%d]: ' % self.execution_count, end='')
+                    self.print_out_prompt()
                     text_repr = format_dict['text/plain']
                     if '\n' in text_repr:
                         # For multi-line results, start a new line after prompt
