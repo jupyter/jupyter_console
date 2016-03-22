@@ -423,12 +423,16 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
     def ask_exit(self):
         self.keep_running = False
 
-    rl_next_input = None
+    # This is set from payloads in handle_execute_reply
+    next_input = None
 
     def pre_prompt(self):
-        if self.rl_next_input:
-            self.pt_cli.application.buffer.text = cast_unicode_py2(self.rl_next_input)
-            self.rl_next_input = None
+        if self.next_input:
+            b = self.pt_cli.application.buffer
+            b.text = cast_unicode_py2(self.next_input)
+            self.next_input = None
+            # Move the cursor to the end
+            b.cursor_position += b.document.get_end_of_document_position()
 
     def interact(self, display_banner=None):
         while self.keep_running:
@@ -534,7 +538,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                     if source == 'page':
                         page.page(item['data']['text/plain'])
                     elif source == 'set_next_input':
-                        self.set_next_input(item['text'])
+                        self.next_input = item['text']
                     elif source == 'ask_exit':
                         self.keepkernel = item.get('keepkernel', False)
                         self.ask_exit()
