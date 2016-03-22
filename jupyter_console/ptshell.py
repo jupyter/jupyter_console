@@ -19,13 +19,14 @@ except ImportError:
 
 from zmq import ZMQError
 from IPython.core import page
-from IPython.terminal.interactiveshell import TerminalInteractiveShell
-from IPython.utils.py3compat import PY3, cast_unicode_py2, input
+from IPython.utils.py3compat import cast_unicode_py2, input
 from ipython_genutils.tempdir import NamedFileInTemporaryDirectory
 from traitlets import (Bool, Integer, Float, Unicode, List, Dict, Enum,
                        Instance, Any)
+from traitlets.config import SingletonConfigurable
 
 from .completer import ZMQCompleter
+from .zmqhistory import ZMQHistoryManager
 from . import __version__
 
 from prompt_toolkit.completion import Completer, Completion
@@ -44,6 +45,38 @@ from prompt_toolkit.styles import PygmentsStyle
 from pygments.styles import get_style_by_name
 from pygments.lexers import LEXERS, find_lexer_class
 from pygments.token import Token
+
+def ask_yes_no(prompt, default=None, interrupt=None):
+    """Asks a question and returns a boolean (y/n) answer.
+
+    If default is given (one of 'y','n'), it is used if the user input is
+    empty. If interrupt is given (one of 'y','n'), it is used if the user
+    presses Ctrl-C. Otherwise the question is repeated until an answer is
+    given.
+
+    An EOF is treated as the default answer.  If there is no default, an
+    exception is raised to prevent infinite loops.
+
+    Valid answers are: y/yes/n/no (match is not case sensitive)."""
+
+    answers = {'y':True,'n':False,'yes':True,'no':False}
+    ans = None
+    while ans not in answers.keys():
+        try:
+            ans = input(prompt+' ').lower()
+            if not ans:  # response was an empty string
+                ans = default
+        except KeyboardInterrupt:
+            if interrupt:
+                ans = interrupt
+        except EOFError:
+            if default in answers.keys():
+                ans = default
+                print()
+            else:
+                raise
+
+    return answers[ans]
 
 def get_pygments_lexer(name):
     name = name.lower()
@@ -80,7 +113,7 @@ class JupyterPTCompleter(Completer):
         for m in content['matches']:
             yield Completion(m, start_position=start_pos)
 
-class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
+class ZMQTerminalInteractiveShell(SingletonConfigurable):
     colors_force = True
     readline_use = False
 
@@ -106,7 +139,11 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         help="How many history items to load into memory"
     )
 
-    kernel_banner = Unicode('')
+    banner = Unicode('Jupyter console {version}\n\n{kernel_banner}', config=True,
+        help=("Text to display before the first prompt. Will be formatted with "
+              "variables {version} and {kernel_banner}.")
+    )
+
     kernel_timeout = Float(60, config=True,
         help="""Timeout for giving up on a kernel (in seconds).
 
@@ -200,10 +237,19 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         return "Jupyter Console {version}\n".format(version=__version__)
 
     def __init__(self, **kwargs):
+        # This is where traits with a config_key argument are updated
+        # from the values on config.
         super(ZMQTerminalInteractiveShell, self).__init__(**kwargs)
+        self.configurables = [self]
+
+        self.init_history()
+        self.init_completer()
+        self.init_io()
+
         self.init_kernel_info()
         self.init_prompt_toolkit_cli()
         self.keep_running = True
+        self.execution_count = 1
 
     def init_completer(self):
         """Initialize the completion machinery.
@@ -213,17 +259,12 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         library), programmatically (such as in test suites) or out-of-process
         (typically over the network by remote frontends).
         """
-        # TODO: These special cases for the completer don't belong in the frontend
-        from IPython.core.completerlib import (module_completer,
-                                               magic_run_completer, cd_completer)
-
         self.Completer = ZMQCompleter(self, self.client, config=self.config)
 
-
-        self.set_hook('complete_command', module_completer, str_key = 'import')
-        self.set_hook('complete_command', module_completer, str_key = 'from')
-        self.set_hook('complete_command', magic_run_completer, str_key = '%run')
-        self.set_hook('complete_command', cd_completer, str_key = '%cd')
+    def init_history(self):
+        """Sets up the command history. """
+        self.history_manager = ZMQHistoryManager(client=self.client)
+        self.configurables.append(self.history_manager)
 
     def get_prompt_tokens(self, cli):
         return [
@@ -236,10 +277,6 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         return [
             (Token.Prompt, (' ' * (width - 2)) + ': '),
         ]
-
-    def init_virtualenv(self):
-        # No need to do this in the frontend, and the warning is confusing
-        pass
 
     kernel_info = {}
     def init_kernel_info(self):
@@ -259,9 +296,9 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                     self.kernel_info = reply['content']
                     return
 
-    @property
-    def banner2(self):
-        return self.kernel_info.get('banner', '')
+    def show_banner(self):
+        print(self.banner.format(version=__version__,
+                         kernel_banner=self.kernel_info.get('banner', '')))
 
     def init_prompt_toolkit_cli(self):
         if 'JUPYTER_CONSOLE_TEST' in os.environ:
@@ -386,7 +423,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
             try:
                 code = self.prompt_for_code()
             except EOFError:
-                if self.ask_yes_no('Do you really want to exit ([y]/n)?','y','n'):
+                if ask_yes_no('Do you really want to exit ([y]/n)?','y','n'):
                     self.ask_exit()
 
             else:
@@ -600,13 +637,16 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                     format_dict = sub_msg["content"]["data"]
                     self.handle_rich_data(format_dict)
 
-                    # taken from DisplayHook.__call__:
-                    hook = self.displayhook
-                    hook.start_displayhook()
-                    hook.write_output_prompt()
-                    hook.write_format_data(format_dict)
-                    hook.log_output(format_dict)
-                    hook.finish_displayhook()
+                    if 'text/plain' not in format_dict:
+                        continue
+
+                    # TODO: reinstate colour in out prompt
+                    print('Out[%d]: ' % self.execution_count, end='')
+                    text_repr = format_dict['text/plain']
+                    if '\n' in text_repr:
+                        # For multi-line results, start a new line after prompt
+                        print()
+                    print(text_repr)
 
                 elif msg_type == 'display_data':
                     data = sub_msg["content"]["data"]
@@ -706,9 +746,6 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
             signal.signal(signal.SIGINT, double_int)
             content = req['content']
             read = getpass if content.get('password', False) else input
-            if self.has_readline:
-                # Disable tab completion while we prompt for arbitrary input
-                self.readline.set_completer(None)
             try:
                 raw_data = read(content["prompt"])
             except EOFError:
@@ -720,9 +757,6 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
             finally:
                 # restore SIGINT handler
                 signal.signal(signal.SIGINT, real_handler)
-                # Restore tab completion ready for our next input prompt
-                if self.has_readline:
-                    self.set_readline_completer()
 
             # only send stdin reply if there *was not* another request
             # or execution finished while we were reading.
