@@ -52,7 +52,6 @@ aliases = dict(base_aliases)
 frontend_aliases = dict(app_aliases)
 # load updated frontend flags into full dict
 aliases.update(frontend_aliases)
-aliases['colors'] = 'InteractiveShell.colors'
 
 # get flags&aliases into sets, and remove a couple that
 # shouldn't be scrubbed from backend flags:

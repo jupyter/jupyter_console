@@ -35,9 +35,10 @@ def test_display_text():
     #   from IPython.display import display; display(x);
     p, pexpect, t = start_console()
     p.sendline('x = %lsmagic')
-    idx = p.expect([r'In \[\d+\]', pexpect.EOF], timeout=t)
+    p.expect(r'In \[\d+\]', timeout=t)
     p.sendline('from IPython.display import display; display(x);')
-    p.expect([r'Available line magics:', pexpect.EOF], timeout=t)
+    p.expect(r'Available line magics:', timeout=t)
+    p.expect(r'In \[\d+\]', timeout=t)
     stop_console(p, pexpect, t)
 
 def stop_console(p, pexpect, t):
@@ -66,7 +67,7 @@ def start_console():
     
     # timeout after one minute
     t = 60
-    idx = p.expect([r'In \[\d+\]', pexpect.EOF], timeout=t)
+    idx = p.expect(r'In \[\d+\]', timeout=t)
     return p, pexpect, t
 
 
