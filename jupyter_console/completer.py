@@ -42,7 +42,7 @@ class ZMQCompleter(IPCompleter):
         # don't do any splitting client-side,
         # rely on the kernel for that
         self.splitter.delims = '\r\n'
-        if self.readline:
+        if hasattr(self.readline, 'set_completer_delims'):
             self.readline.set_completer_delims('\r\n')
     
     def complete_request(self, code, cursor_pos):
