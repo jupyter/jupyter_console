@@ -30,10 +30,10 @@ from .zmqhistory import ZMQHistoryManager
 from . import __version__
 
 from prompt_toolkit.completion import Completer, Completion
-from prompt_toolkit.enums import DEFAULT_BUFFER
-from prompt_toolkit.filters import HasFocus, HasSelection
+from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
+from prompt_toolkit.filters import HasFocus, HasSelection, ViInsertMode, EmacsInsertMode
 from prompt_toolkit.history import InMemoryHistory
-from prompt_toolkit.shortcuts import create_prompt_application
+from prompt_toolkit.shortcuts import create_prompt_application, create_eventloop
 from prompt_toolkit.interface import CommandLineInterface
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.key_binding.vi_state import InputMode
@@ -122,9 +122,10 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
     _executing = False
     _execution_state = Unicode('')
     _pending_clearoutput = False
+    _eventloop = None
 
-    vi_mode = Bool(False, config=True,
-        help="Use vi style keybindings at the prompt",
+    editing_mode = Unicode('emacs', config=True,
+        help="Shortcut style to use at the prompt. 'vi' or 'emacs'.",
     )
 
     highlighting_style = Unicode('', config=True,
@@ -321,8 +322,8 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                 lambda: print('Out[%d]: ' % self.execution_count, end='')
             return
 
-        kbmanager = KeyBindingManager.for_prompt(enable_vi_mode=self.vi_mode)
-        insert_mode = ViStateFilter(kbmanager.get_vi_state, InputMode.INSERT)
+        kbmanager = KeyBindingManager.for_prompt()
+        insert_mode = ViInsertMode() | EmacsInsertMode()
         # Ctrl+J == Enter, seemingly
         @kbmanager.registry.add_binding(Keys.ControlJ,
                             filter=(HasFocus(DEFAULT_BUFFER)
@@ -383,9 +384,11 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         style = PygmentsStyle.from_defaults(pygments_style_cls=style_cls,
                                             style_dict=style_overrides)
 
+        editing_mode = getattr(EditingMode, self.editing_mode.upper())
         langinfo = self.kernel_info.get('language_info', {})
         lexer = langinfo.get('pygments_lexer', langinfo.get('name', 'text'))
         app = create_prompt_application(multiline=True,
+                            editing_mode=editing_mode,
                             lexer=PygmentsLexer(get_pygments_lexer(lexer)),
                             get_prompt_tokens=self.get_prompt_tokens,
                             get_continuation_tokens=self.get_continuation_tokens,
@@ -396,10 +399,12 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                             style=style,
         )
 
-        self.pt_cli = CommandLineInterface(app)
+        self._eventloop = create_eventloop()
+        self.pt_cli = CommandLineInterface(app, eventloop=self._eventloop)
 
     def prompt_for_code(self):
-        document = self.pt_cli.run(pre_run=self.pre_prompt)
+        document = self.pt_cli.run(pre_run=self.pre_prompt,
+                                   reset_current_buffer=True)
         return document.text
 
     def init_io(self):
@@ -459,6 +464,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             except KeyboardInterrupt:
                 print("\nKeyboardInterrupt escaped interact()\n")
 
+        self._eventloop.close()
         if self.keepkernel and not self.own_kernel:
             print('keeping kernel alive')
         elif self.keepkernel and self.own_kernel :
