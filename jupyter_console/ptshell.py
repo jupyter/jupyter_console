@@ -33,7 +33,7 @@ from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.filters import HasFocus, HasSelection
 from prompt_toolkit.history import InMemoryHistory
-from prompt_toolkit.shortcuts import create_prompt_application
+from prompt_toolkit.shortcuts import create_prompt_application, create_eventloop
 from prompt_toolkit.interface import CommandLineInterface
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.key_binding.vi_state import InputMode
@@ -122,6 +122,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
     _executing = False
     _execution_state = Unicode('')
     _pending_clearoutput = False
+    _eventloop = None
 
     vi_mode = Bool(False, config=True,
         help="Use vi style keybindings at the prompt",
@@ -396,7 +397,8 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                             style=style,
         )
 
-        self.pt_cli = CommandLineInterface(app)
+        self._eventloop = create_eventloop()
+        self.pt_cli = CommandLineInterface(app, eventloop=self._eventloop)
 
     def prompt_for_code(self):
         document = self.pt_cli.run(pre_run=self.pre_prompt)
@@ -459,6 +461,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             except KeyboardInterrupt:
                 print("\nKeyboardInterrupt escaped interact()\n")
 
+        self._eventloop.close()
         if self.keepkernel and not self.own_kernel:
             print('keeping kernel alive')
         elif self.keepkernel and self.own_kernel :
