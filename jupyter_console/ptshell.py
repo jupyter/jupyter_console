@@ -683,10 +683,9 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
 
                 elif msg_type == 'execute_input':
                     content = sub_msg['content']
-                    self.execution_count = content['execution_count']
                     if not self.from_here(sub_msg):
                         sys.stdout.write(self.other_output_prefix)
-                    sys.stdout.write(self.prompt_manager.render('in'))
+                    sys.stdout.write('In [{}]: '.format(content['execution_count']))
                     sys.stdout.write(content['code'])
 
                 elif msg_type == 'clear_output':
