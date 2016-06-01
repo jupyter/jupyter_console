@@ -708,22 +708,22 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
     def handle_rich_data(self, data):
         for mime in self.mime_preference:
             if mime in data and mime in self._imagemime:
-                self.handle_image(data, mime)
-                return True
+                return self.handle_image(data, mime)
 
     def handle_image(self, data, mime):
         handler = getattr(
             self, 'handle_image_{0}'.format(self.image_handler), None)
         if handler:
-            handler(data, mime)
+            return handler(data, mime)
 
     def handle_image_PIL(self, data, mime):
         if mime not in ('image/png', 'image/jpeg'):
-            return
+            return False
         import PIL.Image
         raw = base64.decodestring(data[mime].encode('ascii'))
         img = PIL.Image.open(BytesIO(raw))
         img.show()
+        return True
 
     def handle_image_stream(self, data, mime):
         raw = base64.decodestring(data[mime].encode('ascii'))
@@ -735,6 +735,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                 args, stdin=subprocess.PIPE,
                 stdout=devnull, stderr=devnull)
             proc.communicate(raw)
+        return True
 
     def handle_image_tempfile(self, data, mime):
         raw = base64.decodestring(data[mime].encode('ascii'))
@@ -747,9 +748,15 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             fmt = dict(file=f.name, format=imageformat)
             args = [s.format(**fmt) for s in self.tempfile_image_handler]
             subprocess.call(args, stdout=devnull, stderr=devnull)
+        return True
 
     def handle_image_callable(self, data, mime):
-        self.callable_image_handler(data)
+        res = self.callable_image_handler(data)
+        if res is not False:
+            # If handler func returns e.g. None, assume it has handled the data.
+            res = True
+        return res
+
 
     def handle_input_request(self, msg_id, timeout=0.1):
         """ Method to capture raw_input
