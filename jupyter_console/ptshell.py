@@ -198,8 +198,9 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         """
         Callable object called via 'callable' image handler with one
         argument, `data`, which is `msg["content"]["data"]` where
-        `msg` is the message from iopub channel.  For exmaple, you can
-        find base64 encoded PNG data as `data['image/png']`.
+        `msg` is the message from iopub channel.  For example, you can
+        find base64 encoded PNG data as `data['image/png']`. Has to
+        return a truthy value if it can handle the data, else falsey.
         """
     )
 
@@ -708,22 +709,22 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
     def handle_rich_data(self, data):
         for mime in self.mime_preference:
             if mime in data and mime in self._imagemime:
-                self.handle_image(data, mime)
-                return True
+                if self.handle_image(data, mime):
+                    return True
 
     def handle_image(self, data, mime):
         handler = getattr(
             self, 'handle_image_{0}'.format(self.image_handler), None)
         if handler:
-            handler(data, mime)
+            return handler(data, mime)
 
     def handle_image_PIL(self, data, mime):
         if mime not in ('image/png', 'image/jpeg'):
-            return
-        import PIL.Image
+            return False
+        from PIL import Image, ImageShow
         raw = base64.decodestring(data[mime].encode('ascii'))
-        img = PIL.Image.open(BytesIO(raw))
-        img.show()
+        img = Image.open(BytesIO(raw))
+        return ImageShow.show(img)  # img.show always returns None 
 
     def handle_image_stream(self, data, mime):
         raw = base64.decodestring(data[mime].encode('ascii'))
@@ -735,6 +736,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                 args, stdin=subprocess.PIPE,
                 stdout=devnull, stderr=devnull)
             proc.communicate(raw)
+            return proc.returncode == 0
 
     def handle_image_tempfile(self, data, mime):
         raw = base64.decodestring(data[mime].encode('ascii'))
@@ -746,10 +748,11 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             f.flush()
             fmt = dict(file=f.name, format=imageformat)
             args = [s.format(**fmt) for s in self.tempfile_image_handler]
-            subprocess.call(args, stdout=devnull, stderr=devnull)
+            returncode = subprocess.call(args, stdout=devnull, stderr=devnull)
+            return returncode == 0
 
     def handle_image_callable(self, data, mime):
-        self.callable_image_handler(data)
+        return self.callable_image_handler(data)
 
     def handle_input_request(self, msg_id, timeout=0.1):
         """ Method to capture raw_input
