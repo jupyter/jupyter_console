@@ -199,8 +199,8 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         Callable object called via 'callable' image handler with one
         argument, `data`, which is `msg["content"]["data"]` where
         `msg` is the message from iopub channel.  For example, you can
-        find base64 encoded PNG data as `data['image/png']`. Has to
-        return a truthy value if it can handle the data, else falsey.
+        find base64 encoded PNG data as `data['image/png']`.  Has to
+        return a truthy value or None if it can handle the data.
         """
     )
 
@@ -752,7 +752,9 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             return returncode == 0
 
     def handle_image_callable(self, data, mime):
-        return self.callable_image_handler(data)
+        res = self.callable_image_handler(data)
+        # The return value used to be ignored, so accept None as success
+        return True if res is None else res
 
     def handle_input_request(self, msg_id, timeout=0.1):
         """ Method to capture raw_input
