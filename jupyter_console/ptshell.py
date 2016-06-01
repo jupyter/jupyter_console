@@ -721,11 +721,10 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
     def handle_image_PIL(self, data, mime):
         if mime not in ('image/png', 'image/jpeg'):
             return False
-        import PIL.Image
+        from PIL import Image, ImageShow
         raw = base64.decodestring(data[mime].encode('ascii'))
-        img = PIL.Image.open(BytesIO(raw))
-        img.show()
-        return True
+        img = Image.open(BytesIO(raw))
+        return ImageShow.show(img)
 
     def handle_image_stream(self, data, mime):
         raw = base64.decodestring(data[mime].encode('ascii'))
