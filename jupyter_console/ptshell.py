@@ -708,7 +708,9 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
     def handle_rich_data(self, data):
         for mime in self.mime_preference:
             if mime in data and mime in self._imagemime:
-                return self.handle_image(data, mime)
+                if self.handle_image(data, mime):
+                    return True
+        return False
 
     def handle_image(self, data, mime):
         handler = getattr(
@@ -735,7 +737,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                 args, stdin=subprocess.PIPE,
                 stdout=devnull, stderr=devnull)
             proc.communicate(raw)
-        return True
+        return (proc.returncode == 0)
 
     def handle_image_tempfile(self, data, mime):
         raw = base64.decodestring(data[mime].encode('ascii'))
@@ -747,8 +749,8 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             f.flush()
             fmt = dict(file=f.name, format=imageformat)
             args = [s.format(**fmt) for s in self.tempfile_image_handler]
-            subprocess.call(args, stdout=devnull, stderr=devnull)
-        return True
+            rc = subprocess.call(args, stdout=devnull, stderr=devnull)
+        return (rc == 0)
 
     def handle_image_callable(self, data, mime):
         res = self.callable_image_handler(data)
