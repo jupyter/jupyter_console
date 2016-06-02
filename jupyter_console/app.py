@@ -120,7 +120,7 @@ class ZMQTerminalIPythonApp(JupyterApp, JupyterConsoleApp):
             if self.kernel_manager:
                 self.kernel_manager.interrupt_kernel()
             else:
-                print("\n", file=sys.stderr, end="\n")
+                print("", file=sys.stderr)
                 error("Cannot interrupt kernels we didn't start.\n")
         else:
             # raise the KeyboardInterrupt if we aren't waiting for execution,
