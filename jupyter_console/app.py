@@ -11,6 +11,7 @@ from __future__ import print_function
 
 import logging
 import signal
+import sys
 
 from traitlets import (
     Dict, Any
@@ -91,9 +92,9 @@ class ZMQTerminalIPythonApp(JupyterApp, JupyterConsoleApp):
     aliases = Dict(aliases)
     frontend_aliases = Any(frontend_aliases)
     frontend_flags = Any(frontend_flags)
-    
+
     subcommands = Dict()
-    
+
     force_interact = True
 
     def parse_command_line(self, argv=None):
@@ -119,7 +120,7 @@ class ZMQTerminalIPythonApp(JupyterApp, JupyterConsoleApp):
             if self.kernel_manager:
                 self.kernel_manager.interrupt_kernel()
             else:
-                self.shell.write_err('\n')
+                print("\n", file=sys.stderr, end="\n")
                 error("Cannot interrupt kernels we didn't start.\n")
         else:
             # raise the KeyboardInterrupt if we aren't waiting for execution,
@@ -142,7 +143,7 @@ class ZMQTerminalIPythonApp(JupyterApp, JupyterConsoleApp):
         self.shell.show_banner()
         # Make sure there is a space below the banner.
         if self.log_level <= logging.INFO: print()
-    
+
     def start(self):
         # JupyterApp.start dispatches on NoStart
         super(ZMQTerminalIPythonApp, self).start()
