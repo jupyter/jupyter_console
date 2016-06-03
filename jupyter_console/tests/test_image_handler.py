@@ -34,30 +34,38 @@ class ZMQTerminalInteractiveShellTestCase(unittest.TestCase):
         self.mime = 'image/png'
         self.data = {self.mime: base64.encodestring(self.raw).decode('ascii')}
 
-    def test_no_call_by_default(self):
+    def test_call_pil_by_default(self):
+        pil_called_with = []
+        def pil_called(data, mime):
+            pil_called_with.append(data)
+
         def raise_if_called(*args, **kwds):
             assert False
 
         shell = self.shell
-        shell.handle_image_PIL = raise_if_called
+        shell.handle_image_PIL = pil_called
         shell.handle_image_stream = raise_if_called
         shell.handle_image_tempfile = raise_if_called
         shell.handle_image_callable = raise_if_called
 
         shell.handle_image(None, None)  # arguments are dummy
+        assert len(pil_called_with) == 1
 
     @skip_without('PIL')
     def test_handle_image_PIL(self):
-        import PIL.Image
+        from PIL import Image, ImageShow
 
         open_called_with = []
         show_called_with = []
 
         def fake_open(arg):
             open_called_with.append(arg)
-            return Struct(show=lambda: show_called_with.append(None))
 
-        with patch.object(PIL.Image, 'open', fake_open):
+        def fake_show(img):
+            show_called_with.append(img)
+
+        with patch.object(Image, 'open', fake_open), \
+             patch.object(ImageShow, 'show', fake_show):
             self.shell.handle_image_PIL(self.data, self.mime)
 
         self.assertEqual(len(open_called_with), 1)
