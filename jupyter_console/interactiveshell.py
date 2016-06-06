@@ -318,7 +318,6 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         while self.client.iopub_channel.msg_ready():
             sub_msg = self.client.iopub_channel.get_msg()
             msg_type = sub_msg['header']['msg_type']
-            parent = sub_msg["parent_header"]
 
             if self.include_output(sub_msg):
                 if msg_type == 'status':
@@ -370,7 +369,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                     self.execution_count = content['execution_count']
                     if not self.from_here(sub_msg):
                         sys.stdout.write(self.other_output_prefix)
-                    sys.stdout.write(self.prompt_manager.render('in'))
+                    sys.stdout.write('In [ ]')
                     sys.stdout.write(content['code'])
 
                 elif msg_type == 'clear_output':
@@ -596,7 +595,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                 self.hooks.pre_prompt_hook()
                 if more:
                     try:
-                        prompt = self.prompt_manager.render('in2')
+                        prompt = '  ...:'
                     except Exception:
                         self.showtraceback()
                     if self.autoindent:
@@ -605,7 +604,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                 else:
                     self._next_line_indent = ''
                     try:
-                        prompt = self.separate_in + self.prompt_manager.render('in')
+                        prompt = '-'*72 +'\n' + 'In [ ]'
                     except Exception:
                         self.showtraceback()
 

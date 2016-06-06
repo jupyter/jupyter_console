@@ -11,7 +11,7 @@ try:
 except ImportError:
     from Queue import Empty  # Py 2
 
-from IPython.utils.py3compat import PY3, cast_unicode_py2
+from IPython.utils.py3compat import cast_unicode_py2
 from traitlets import Bool, Integer, Unicode, Dict
 
 from .interactiveshell import ZMQTerminalInteractiveShell
@@ -20,7 +20,7 @@ from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.filters import HasFocus, HasSelection
 from prompt_toolkit.history import InMemoryHistory
-from prompt_toolkit.shortcuts import create_prompt_application
+from prompt_toolkit.shortcuts import create_prompt_application, create_eventloop
 from prompt_toolkit.interface import CommandLineInterface
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.key_binding.vi_state import InputMode
@@ -34,7 +34,8 @@ from pygments.lexers import LEXERS, find_lexer_class
 from pygments.token import Token
 
 def get_pygments_lexer(name):
-    name = name.lower()
+    if name:
+        name = name.lower()
     if name == 'ipython2':
         from IPython.lib.lexers import IPythonLexer
         return IPythonLexer
@@ -208,7 +209,8 @@ class PTInteractiveShell(ZMQTerminalInteractiveShell):
                             style=style,
         )
 
-        self.pt_cli = CommandLineInterface(app)
+        self._eventloop = create_eventloop(self.inputhook)
+        self.pt_cli = CommandLineInterface(app, eventloop=self._eventloop)
 
     def prompt_for_code(self):
         document = self.pt_cli.run(pre_run=self.pre_prompt)
@@ -265,3 +267,6 @@ class PTInteractiveShell(ZMQTerminalInteractiveShell):
                 break
             except KeyboardInterrupt:
                 print("\nKeyboardInterrupt escaped interact()\n")
+
+        if hasattr(self, '_eventloop'):
+            self._eventloop.close()
