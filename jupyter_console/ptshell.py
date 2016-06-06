@@ -156,7 +156,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
     )
 
     image_handler = Enum(('PIL', 'stream', 'tempfile', 'callable'),
-                         config=True, allow_none=True, help=
+                         'PIL', config=True, allow_none=True, help=
         """
         Handler for image type output.  This is useful, for example,
         when connecting to the kernel in which pylab inline backend is
@@ -723,7 +723,10 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
     def handle_image_PIL(self, data, mime):
         if mime not in ('image/png', 'image/jpeg'):
             return False
-        from PIL import Image, ImageShow
+        try:
+            from PIL import Image, ImageShow
+        except ImportError:
+            return False
         raw = base64.decodestring(data[mime].encode('ascii'))
         img = Image.open(BytesIO(raw))
         return ImageShow.show(img)
