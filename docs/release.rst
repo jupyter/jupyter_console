@@ -29,7 +29,8 @@ Create the release
 ------------------
 
 #.  Update version number in ``jupyter_console/_version.py``. Make sure that
-    a valid PEP440 version is being used.
+    a valid `PEP 440 <https://www.python.org/dev/peps/pep-0440/>`_ version is
+    being used.
 
 #.  Commit and tag the release with the current version number:
 
@@ -54,6 +55,6 @@ Create the release
         twine upload dist/*
 
 #.  If all went well, change the ``jupyter_console/_version.py`` to the next
-            release.
+    release.
 
 #.  Push directly on master, not forgetting to push ``--tags`` too.
