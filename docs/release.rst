@@ -28,6 +28,14 @@ previous attempts.
 Create the release
 ------------------
 
+#. Set Environment variables
+
+    Set environment variables to document current release version, and git tag:
+
+    .. code:: bash
+
+        VERSION=4.1.0
+
 #.  Update version number in ``jupyter_console/_version.py``. Make sure that
     a valid `PEP 440 <https://www.python.org/dev/peps/pep-0440/>`_ version is
     being used.
