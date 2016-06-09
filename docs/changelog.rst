@@ -24,7 +24,7 @@ Prompts improvement
 ^^^^^^^^^^^^^^^^^^^
 - use prompt_toolkit 1.0 `#74 <https://github.com/jupyter/jupyter_console/pull/74>`_
 - don't use prompt_manager `#75 <https://github.com/jupyter/jupyter_console/pull/75>`_
-- reinstate continuation prompts `#62 <https://github.com/jupyter/jupyter_console/pull/62`_
+- reinstate continuation prompts `#62 <https://github.com/jupyter/jupyter_console/pull/62>`_
 
 4.1
 ---
