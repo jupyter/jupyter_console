@@ -3,6 +3,29 @@ Changes in Jupyter console
 
 A summary of changes in Jupyter console releases.
 
+5.0
+---
+
+5.0.0b1
+~~~~~~~
+
+Interactive Shell architecture
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- disinherit shell class from IPython Interactive Shell [#68](https://github.com/jupyter/jupyter_console/pull/68)
+  This separates jupyter_console's ZMQTerminalInteractiveShell from IPython's TerminalInteractiveShell and InteractiveShell classes.
+- update SIGINT handler to not use the old interactive API shell [#80](https://github.com/jupyter/jupyter_console/pull/80)
+
+Image Handling improvement
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+- use PIL as default image handler [#79](https://github.com/jupyter/jupyter_console/pull/79)
+- better indication of whether image data was handled [#77](https://github.com/jupyter/jupyter_console/pull/77)
+
+Prompts improvement
+^^^^^^^^^^^^^^^^^^^
+- use prompt_toolkit 1.0 [#74](https://github.com/jupyter/jupyter_console/pull/74)
+- don't use prompt_manager [#75](https://github.com/jupyter/jupyter_console/pull/75)
+- reinstate continuation prompts [#62](https://github.com/jupyter/jupyter_console/pull/62)
+
 4.1
 ---
 
