@@ -114,7 +114,6 @@ class JupyterPTCompleter(Completer):
             yield Completion(m, start_position=start_pos)
 
 class ZMQTerminalInteractiveShell(SingletonConfigurable):
-    colors_force = True
     readline_use = False
 
     pt_cli = None
