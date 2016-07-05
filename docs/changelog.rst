@@ -6,9 +6,6 @@ A summary of changes in Jupyter console releases.
 5.0
 ---
 
-5.0.0b1
-~~~~~~~
-
 Interactive Shell architecture
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 - disinherit shell class from IPython Interactive Shell `#68 <https://github.com/jupyter/jupyter_console/pull/68>`_
@@ -24,7 +21,7 @@ Prompts improvement
 ^^^^^^^^^^^^^^^^^^^
 - use prompt_toolkit 1.0 `#74 <https://github.com/jupyter/jupyter_console/pull/74>`_
 - don't use prompt_manager `#75 <https://github.com/jupyter/jupyter_console/pull/75>`_
-- reinstate continuation prompts `#62 <https://github.com/jupyter/jupyter_console/pull/62>`_
+- remove ``colors_force`` flag that have no effects: `#88 <https://github.com/jupyter/jupyter_console/pull/88>`_
 
 4.1
 ---
