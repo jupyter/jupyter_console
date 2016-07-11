@@ -33,7 +33,7 @@ from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
 from prompt_toolkit.filters import HasFocus, HasSelection, ViInsertMode, EmacsInsertMode
 from prompt_toolkit.history import InMemoryHistory
-from prompt_toolkit.shortcuts import create_prompt_application, create_eventloop
+from prompt_toolkit.shortcuts import create_prompt_application, create_eventloop, create_output
 from prompt_toolkit.interface import CommandLineInterface
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.key_binding.vi_state import InputMode
@@ -133,6 +133,10 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
 
     highlighting_style_overrides = Dict(config=True,
         help="Override highlighting format for specific tokens"
+    )
+
+    true_color = Bool(False, config=True,
+        help="Use 24bit colors instead of 256 colors in prompt highlighting"
     )
 
     history_load_length = Integer(1000, config=True,
@@ -401,7 +405,10 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         )
 
         self._eventloop = create_eventloop()
-        self.pt_cli = CommandLineInterface(app, eventloop=self._eventloop)
+        self.pt_cli = CommandLineInterface(app,
+                            eventloop=self._eventloop,
+                            output=create_output(true_color=self.true_color),
+        )
 
     def prompt_for_code(self):
         document = self.pt_cli.run(pre_run=self.pre_prompt,
