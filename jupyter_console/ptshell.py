@@ -423,8 +423,12 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             except SyntaxError:
                 return False, ""
         else:
-            more = (code.splitlines()[-1] != "")
-            return more, ""
+            lines = code.splitlines()
+            if len(lines):
+                more = (lines[-1] != "")
+                return more, ""
+            else:
+                return False, ""
 
     def ask_exit(self):
         self.keep_running = False
