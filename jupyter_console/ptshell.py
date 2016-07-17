@@ -425,7 +425,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         else:
             lines = code.splitlines()
             if len(lines):
-                more = ([-1] != "")
+                more = (lines[-1] != "")
                 return more, ""
             else:
                 return False, ""
