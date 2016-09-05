@@ -43,7 +43,8 @@ from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.styles import PygmentsStyle
 
 from pygments.styles import get_style_by_name
-from pygments.lexers import LEXERS, find_lexer_class
+from pygments.lexers import get_lexer_by_name
+from pygments.util import ClassNotFound
 from pygments.token import Token
 
 def ask_yes_no(prompt, default=None, interrupt=None):
@@ -87,13 +88,12 @@ def get_pygments_lexer(name):
         from IPython.lib.lexers import IPython3Lexer
         return IPython3Lexer
     else:
-        for module_name, cls_name, aliases, _, _ in LEXERS.values():
-            if name in aliases:
-                return find_lexer_class(cls_name)
-
-        warn("No lexer found for language %r. Treating as plain text." % name)
-        from pygments.lexers.special import TextLexer
-        return TextLexer
+        try:
+            return get_lexer_by_name(name).__class__
+        except ClassNotFound:
+            warn("No lexer found for language %r. Treating as plain text." % name)
+            from pygments.lexers.special import TextLexer
+            return TextLexer
 
 
 class JupyterPTCompleter(Completer):
