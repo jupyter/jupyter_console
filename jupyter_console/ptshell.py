@@ -236,6 +236,14 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         """
     )
 
+
+    confirm_exit = Bool(True, config=True,
+        help="""Set to display confirmation dialog on exit.
+        You can always use 'exit' or 'quit', to force a
+        direct exit without any confirmation.
+        """
+    )
+
     manager = Instance('jupyter_client.KernelManager', allow_none=True)
     client = Instance('jupyter_client.KernelClient', allow_none=True)
     def _client_changed(self, name, old, new):
@@ -461,7 +469,8 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             try:
                 code = self.prompt_for_code()
             except EOFError:
-                if ask_yes_no('Do you really want to exit ([y]/n)?','y','n'):
+                if (not self.confirm_exit) \
+                    or ask_yes_no('Do you really want to exit ([y]/n)?','y','n'):
                     self.ask_exit()
 
             else:
