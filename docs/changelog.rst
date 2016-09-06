@@ -6,6 +6,9 @@ A summary of changes in Jupyter console releases.
 5.0
 ---
 
+5.0.0
+~~~~~
+
 Interactive Shell architecture
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 - disinherit shell class from IPython Interactive Shell `#68 <https://github.com/jupyter/jupyter_console/pull/68>`_

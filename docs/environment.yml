@@ -1,0 +1,11 @@
+name: jupyterconsole
+channels:
+  - conda-forge
+  - conda
+dependencies:
+  - python=3
+  - ipython
+  - jupyter_core
+  - jupyter_client
+  - sphinx
+  - sphinx_rtd_theme

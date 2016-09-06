@@ -1,2 +1,5 @@
--e git://github.com/ipython/ipython#egg=ipython
--e .
+ipython
+-e ../.
+jupyter_core
+jupyter_client
+sphinx
