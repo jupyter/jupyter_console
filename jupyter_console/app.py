@@ -17,7 +17,6 @@ from traitlets import (
     Dict, Any
 )
 from traitlets.config import catch_config_error
-from IPython.utils.warn import error
 
 from jupyter_core.application import JupyterApp, base_aliases, base_flags, NoStart
 from jupyter_client.consoleapp import (
@@ -120,8 +119,8 @@ class ZMQTerminalIPythonApp(JupyterApp, JupyterConsoleApp):
             if self.kernel_manager:
                 self.kernel_manager.interrupt_kernel()
             else:
-                print("", file=sys.stderr)
-                error("Cannot interrupt kernels we didn't start.\n")
+                print("ERROR: Cannot interrupt kernels we didn't start.",
+                      file = sys.stderr)
         else:
             # raise the KeyboardInterrupt if we aren't waiting for execution,
             # so that the interact loop advances, and prompt is redrawn, etc.
