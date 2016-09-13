@@ -5,9 +5,13 @@
 A terminal-based console frontend for Jupyter kernels.
 This code is based on the single-process IPython terminal.
 
-Install:
+Install with pip:
 
     pip install jupyter-console
+
+Install with conda:
+
+    conda install -c conda-forge jupyter_console
 
 Start:
 
@@ -16,6 +20,18 @@ Start:
 Help:
 
     jupyter console -h
+
+Jupyter Console allows for console-based interaction with non-python 
+Jupyter kernels such as IJulia, IRKernel.
+
+To start the console with a particular kernel, ask for it by name::
+
+    jupyter console --kernel=julia-0.4
+
+A list of available kernels can be seen with::
+
+    jupyter kernelspec list
+
 
 ## Resources
 - [Project Jupyter website](https://jupyter.org)
