@@ -6,6 +6,10 @@ The console can be installed with::
 
     pip install jupyter-console
 
+If you want to use conda instead to perform your installation::
+
+    conda install -c conda-forge jupyter-console
+
 And started with::
 
     jupyter console
