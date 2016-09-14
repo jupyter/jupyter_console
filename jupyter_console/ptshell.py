@@ -688,6 +688,10 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                     if 'text/plain' not in format_dict:
                         continue
 
+                    # prompt_toolkit writes the prompt at a slightly lower level,
+                    # so flush streams first to ensure correct ordering.
+                    sys.stdout.flush()
+                    sys.stderr.flush()
                     self.print_out_prompt()
                     text_repr = format_dict['text/plain']
                     if '\n' in text_repr:
@@ -710,7 +714,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                     if not self.from_here(sub_msg):
                         sys.stdout.write(self.other_output_prefix)
                     sys.stdout.write('In [{}]: '.format(content['execution_count']))
-                    sys.stdout.write(content['code'])
+                    sys.stdout.write(content['code']+'\n')
 
                 elif msg_type == 'clear_output':
                     if sub_msg["content"]["wait"]:
