@@ -24,6 +24,7 @@ from ipython_genutils.tempdir import NamedFileInTemporaryDirectory
 from traitlets import (Bool, Integer, Float, Unicode, List, Dict, Enum,
                        Instance, Any)
 from traitlets.config import SingletonConfigurable
+from threading import Thread
 
 from .completer import ZMQCompleter
 from .zmqhistory import ZMQHistoryManager
@@ -426,8 +427,10 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                             eventloop=self._eventloop,
                             output=create_output(true_color=self.true_color),
         )
+        self.patch_context = self.pt_cli.patch_stdout_context(raw=True)
 
     def prompt_for_code(self):
+        # with self.patch_context:
         document = self.pt_cli.run(pre_run=self.pre_prompt,
                                    reset_current_buffer=True)
         return document.text
@@ -469,6 +472,16 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             b.cursor_position += b.document.get_end_of_document_position()
 
     def interact(self, display_banner=None):
+        # Start handle_iopub thread for external input
+        def external_monitor():
+            while self.keep_running:
+                self.handle_iopub()
+                time.sleep(1)
+
+        extmon = Thread(target=external_monitor)
+        extmon.daemon=True
+        extmon.start()
+
         while self.keep_running:
             print('\n', end='')
 
