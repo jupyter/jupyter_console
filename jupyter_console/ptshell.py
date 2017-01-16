@@ -190,12 +190,6 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         """
     )
 
-    stream_image_handler_print_output = Bool(False, config=True, help=
-        """
-        Print the STDOUT of the 'stream_image_handler' back to the console.
-        """
-    )
-
     tempfile_image_handler = List(config=True, help=
         """
         Command to invoke an image viewer program when you are using
@@ -782,14 +776,10 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         fmt = dict(format=imageformat)
         args = [s.format(**fmt) for s in self.stream_image_handler]
         with open(os.devnull, 'w') as devnull:
-            image_out = subprocess.PIPE if self.stream_image_handler_print_output else devnull
             proc = subprocess.Popen(
                 args, stdin=subprocess.PIPE,
-                stdout=image_out, stderr=devnull)
-            out, err = proc.communicate(raw)
-            if self.stream_image_handler_print_output:
-                sys.stdout.flush()
-                sys.stdout.buffer.write(out)
+                stdout=devnull, stderr=devnull)
+            proc.communicate(raw)
         return (proc.returncode == 0)
 
     def handle_image_tempfile(self, data, mime):
