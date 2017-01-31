@@ -253,6 +253,10 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
     def _banner1_default(self):
         return "Jupyter Console {version}\n".format(version=__version__)
 
+    simple_prompt = Bool(False,
+         help="""Use simple fallback prompt. Features may be limited."""
+    ).tag(config=True)
+
     def __init__(self, **kwargs):
         # This is where traits with a config_key argument are updated
         # from the values on config.
@@ -328,7 +332,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                          kernel_banner=self.kernel_info.get('banner', '')))
 
     def init_prompt_toolkit_cli(self):
-        if 'JUPYTER_CONSOLE_TEST' in os.environ:
+        if self.simple_prompt or ('JUPYTER_CONSOLE_TEST' in os.environ):
             # Simple restricted interface for tests so we can find prompts with
             # pexpect. Multi-line input not supported.
             def prompt():

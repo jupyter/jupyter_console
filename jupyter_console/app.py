@@ -16,7 +16,7 @@ import sys
 from traitlets import (
     Dict, Any
 )
-from traitlets.config import catch_config_error
+from traitlets.config import catch_config_error, boolean_flag
 
 from jupyter_core.application import JupyterApp, base_aliases, base_flags, NoStart
 from jupyter_client.consoleapp import (
@@ -45,6 +45,11 @@ flags = dict(base_flags)
 frontend_flags = dict(app_flags)
 # update full dict with frontend flags:
 flags.update(frontend_flags)
+flags.update(boolean_flag(
+    'simple-prompt', 'ZMQTerminalInteractiveShell.simple_prompt',
+    "Force simple minimal prompt using `raw_input`",
+    "Use a rich interactive prompt with prompt_toolkit"
+))
 
 # copy flags from mixin
 aliases = dict(base_aliases)
