@@ -492,7 +492,8 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             except KeyboardInterrupt:
                 print("\nKeyboardInterrupt escaped interact()\n")
 
-        self._eventloop.close()
+        if self._eventloop:
+            self._eventloop.close()
         if self.keepkernel and not self.own_kernel:
             print('keeping kernel alive')
         elif self.keepkernel and self.own_kernel :
