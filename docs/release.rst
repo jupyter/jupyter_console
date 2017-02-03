@@ -6,12 +6,6 @@ Making a release as a maintainer
 This document guides a maintainer through creating a release of the Jupyter
 console.
 
-Check installed tools
----------------------
-
-Review ``CONTRIBUTING.rst``. Make sure all the tools needed are properly
-installed.
-
 Clean the repository
 --------------------
 
@@ -51,7 +45,7 @@ Create the release
 
     .. code:: bash
 
-        python setup.py sdist --formats=zip,gztar
+        python setup.py sdist --formats=gztar
         python setup.py bdist_wheel
 
 #.  You can now test the ``wheel`` and the ``sdist`` locally before uploading

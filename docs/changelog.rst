@@ -3,6 +3,19 @@ Changes in Jupyter console
 
 A summary of changes in Jupyter console releases.
 
+5.1
+---
+
+- New ``ZMQTerminalInteractiveShell.true_color`` config option to use 24-bit
+  colour.
+- New ``ZMQTerminalInteractiveShell.confirm_exit`` config option to turn off
+  asking 'are you sure' on exit.
+- New ``--simple-prompt`` flag to explicitly use the fallback mode without
+  prompt_toolkit.
+- Fixed executing an empty input.
+- Fixed formatting for code and outputs from other frontends executing code.
+- Avoid using functions which will be removed in IPython 6.
+
 5.0
 ---
 
