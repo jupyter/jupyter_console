@@ -358,6 +358,10 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                 b.newline()
                 return
 
+            # Pressing enter flushes any pending display. This also ensures
+            # the displayed execution_count is correct.
+            self.handle_iopub()
+
             more, indent = self.check_complete(d.text)
 
             if (not more) and b.accept_action.is_returnable:
@@ -662,6 +666,10 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             sub_msg = self.client.iopub_channel.get_msg()
             msg_type = sub_msg['header']['msg_type']
             parent = sub_msg["parent_header"]
+
+            # Update execution_count in case it changed in another session
+            if msg_type == "execute_input":
+                self.execution_count = int(sub_msg["content"]["execution_count"]) + 1
 
             if self.include_output(sub_msg):
                 if msg_type == 'status':
