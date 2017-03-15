@@ -30,6 +30,7 @@ from .zmqhistory import ZMQHistoryManager
 from . import __version__
 
 from prompt_toolkit.completion import Completer, Completion
+from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
 from prompt_toolkit.filters import HasFocus, HasSelection, ViInsertMode, EmacsInsertMode
 from prompt_toolkit.history import InMemoryHistory
@@ -464,11 +465,19 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
 
     def pre_prompt(self):
         if self.next_input:
-            b = self.pt_cli.application.buffer
-            b.text = cast_unicode_py2(self.next_input)
+            # We can't set the buffer here, because it will be reset just after
+            # this. Adding a callable to pre_run_callables does what we need
+            # after the buffer is reset.
+            s = cast_unicode_py2(self.next_input)
+            def set_doc():
+                self.pt_cli.application.buffer.document = Document(s)
+            if hasattr(self.pt_cli, 'pre_run_callables'):
+                self.pt_cli.pre_run_callables.append(set_doc)
+            else:
+                # Older version of prompt_toolkit; it's OK to set the document
+                # directly here.
+                set_doc()
             self.next_input = None
-            # Move the cursor to the end
-            b.cursor_position += b.document.get_end_of_document_position()
 
     def interact(self, display_banner=None):
         while self.keep_running:
