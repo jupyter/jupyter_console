@@ -379,7 +379,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         for _, _, cell in self.history_manager.get_tail(self.history_load_length,
                                                         include_latest=True):
             # Ignore blank lines and consecutive duplicates
-            cell = cell.rstrip()
+            cell = cast_unicode_py2(cell.rstrip())
             if cell and (cell != last_cell):
                 history.append(cell)
 
