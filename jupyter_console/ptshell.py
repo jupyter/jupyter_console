@@ -486,7 +486,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                     self.run_cell(code, store_history=True)
 
     def mainloop(self):
-        self.keepkernel = False
+        self.keepkernel = not self.own_kernel
         # An extra layer of protection in case someone mashing Ctrl-C breaks
         # out of our internal code.
         while True:
