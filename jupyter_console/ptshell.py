@@ -123,6 +123,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
     _execution_state = Unicode('')
     _pending_clearoutput = False
     _eventloop = None
+    own_kernel = False  # Changed by ZMQTerminalIPythonApp
 
     editing_mode = Unicode('emacs', config=True,
         help="Shortcut style to use at the prompt. 'vi' or 'emacs'.",
