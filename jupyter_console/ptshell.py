@@ -374,6 +374,10 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         def _(event):
             event.current_buffer.reset()
 
+        @kbmanager.registry.add_binding(Keys.ControlBackslash, filter=HasFocus(DEFAULT_BUFFER))
+        def _(event):
+            raise EOFError
+
         # Pre-populate history from IPython's history database
         history = InMemoryHistory()
         last_cell = u""
