@@ -123,6 +123,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
     _execution_state = Unicode('')
     _pending_clearoutput = False
     _eventloop = None
+    own_kernel = False  # Changed by ZMQTerminalIPythonApp
 
     editing_mode = Unicode('emacs', config=True,
         help="Shortcut style to use at the prompt. 'vi' or 'emacs'.",
@@ -373,6 +374,10 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         @kbmanager.registry.add_binding(Keys.ControlC, filter=HasFocus(DEFAULT_BUFFER))
         def _(event):
             event.current_buffer.reset()
+
+        @kbmanager.registry.add_binding(Keys.ControlBackslash, filter=HasFocus(DEFAULT_BUFFER))
+        def _(event):
+            raise EOFError
 
         # Pre-populate history from IPython's history database
         history = InMemoryHistory()
