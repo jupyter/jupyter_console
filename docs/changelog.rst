@@ -3,6 +3,17 @@ Changes in Jupyter console
 
 A summary of changes in Jupyter console releases.
 
+5.2
+---
+
+- When using a kernel that the console did not start, exiting with Ctrl-D now
+  leaves it running. :ghpull:`127`
+- Added Ctrl-\\ shortcut to quit the console. :ghpull:`130`
+- Input prompt numbers are now updated when another frontend has executed
+  code in the same kernel. :ghpull:`119`
+- Fix setting next input with newer versions of prompt_toolkit. :ghpull:`123`
+- Ensure history entries are unicode, not bytes, on Python 2. :ghpull:`122`
+
 5.1
 ---
 
@@ -24,20 +35,21 @@ A summary of changes in Jupyter console releases.
 
 Interactive Shell architecture
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-- disinherit shell class from IPython Interactive Shell `#68 <https://github.com/jupyter/jupyter_console/pull/68>`_
-  This separates jupyter_console's ZMQTerminalInteractiveShell from IPython's TerminalInteractiveShell and InteractiveShell classes.
-- update SIGINT handler to not use the old interactive API shell `#80 <https://github.com/jupyter/jupyter_console/pull/80>`_
+- Disinherit shell class from IPython Interactive Shell (:ghpull:`68`).
+  This separates jupyter_console's ``ZMQTerminalInteractiveShell`` from
+  IPython's ``TerminalInteractiveShell`` and ``InteractiveShell`` classes.
+- Update SIGINT handler to not use the old interactive API shell. :ghpull:`80`
 
 Image Handling improvement
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
-- use PIL as default image handler `#79 <https://github.com/jupyter/jupyter_console/pull/79>`_
-- better indication of whether image data was handled `#77 <https://github.com/jupyter/jupyter_console/pull/77>`_
+- use PIL as default image handler :ghpull:`79`
+- better indication of whether image data was handled :ghpull:`77`
 
 Prompts improvement
 ^^^^^^^^^^^^^^^^^^^
-- use prompt_toolkit 1.0 `#74 <https://github.com/jupyter/jupyter_console/pull/74>`_
-- don't use prompt_manager `#75 <https://github.com/jupyter/jupyter_console/pull/75>`_
-- remove ``colors_force`` flag that have no effects: `#88 <https://github.com/jupyter/jupyter_console/pull/88>`_
+- use prompt_toolkit 1.0 :ghpull:`74`
+- don't use prompt_manager :ghpull:`75`
+- remove ``colors_force`` flag that have no effects: :ghpull:`88`
 
 4.1
 ---

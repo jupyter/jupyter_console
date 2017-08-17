@@ -44,7 +44,10 @@ if os.environ.get('READTHEDOCS', ''):
 # ones.
 extensions = [
     'sphinx.ext.intersphinx',
+    'sphinxcontrib_github_alt',
 ]
+
+github_project_url = "https://github.com/jupyter/jupyter_console"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
