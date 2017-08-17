@@ -1,6 +1,7 @@
 """IPython terminal interface using prompt_toolkit in place of readline"""
 from __future__ import print_function
 
+import asyncio
 import base64
 import errno
 from getpass import getpass
@@ -34,7 +35,7 @@ from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
 from prompt_toolkit.filters import HasFocus, HasSelection, ViInsertMode, EmacsInsertMode
 from prompt_toolkit.history import InMemoryHistory
-from prompt_toolkit.shortcuts import create_prompt_application, create_eventloop, create_output
+from prompt_toolkit.shortcuts import create_prompt_application, create_asyncio_eventloop, create_output
 from prompt_toolkit.interface import CommandLineInterface
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.key_binding.vi_state import InputMode
@@ -79,6 +80,17 @@ def ask_yes_no(prompt, default=None, interrupt=None):
                 raise
 
     return answers[ans]
+
+
+@asyncio.coroutine
+def async_input(prompt, loop=None):
+    """Simple async version of input using a the default executor"""
+    if loop is None:
+        loop = asyncio.get_event_loop()
+
+    raw = yield from loop.run_in_executor(None, input, prompt)
+    return raw
+
 
 def get_pygments_lexer(name):
     name = name.lower()
@@ -337,8 +349,11 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         if self.simple_prompt or ('JUPYTER_CONSOLE_TEST' in os.environ):
             # Simple restricted interface for tests so we can find prompts with
             # pexpect. Multi-line input not supported.
+            @asyncio.coroutine
             def prompt():
-                return cast_unicode_py2(input('In [%d]: ' % self.execution_count))
+                prompt = 'In [%d]: ' % self.execution_count
+                raw = yield from async_input(prompt)
+                return cast_unicode_py2(raw)
             self.prompt_for_code = prompt
             self.print_out_prompt = \
                 lambda: print('Out[%d]: ' % self.execution_count, end='')
@@ -429,14 +444,17 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                             style=style,
         )
 
-        self._eventloop = create_eventloop()
+        self._eventloop = create_asyncio_eventloop()
         self.pt_cli = CommandLineInterface(app,
                             eventloop=self._eventloop,
                             output=create_output(true_color=self.true_color),
         )
+        # patch sys.stdout to always print above the prompt.
+        sys.stdout = self.pt_cli.stdout_proxy()
 
+    @asyncio.coroutine
     def prompt_for_code(self):
-        document = self.pt_cli.run(pre_run=self.pre_prompt,
+        document = yield from self.pt_cli.run_async(pre_run=self.pre_prompt,
                                    reset_current_buffer=True)
         return document.text
 
@@ -484,12 +502,13 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                 set_doc()
             self.next_input = None
 
+    @asyncio.coroutine
     def interact(self, display_banner=None):
         while self.keep_running:
             print('\n', end='')
 
             try:
-                code = self.prompt_for_code()
+                code = yield from self.prompt_for_code()
             except EOFError:
                 if (not self.confirm_exit) \
                     or ask_yes_no('Do you really want to exit ([y]/n)?','y','n'):
@@ -501,11 +520,29 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
 
     def mainloop(self):
         self.keepkernel = not self.own_kernel
+        loop = asyncio.get_event_loop()
         # An extra layer of protection in case someone mashing Ctrl-C breaks
         # out of our internal code.
         while True:
             try:
-                self.interact()
+                tasks = [self.interact(loop)]
+
+                if self.include_other_output:
+                    # only poll the iopub channel asynchronously if we
+                    # wish to include external content
+                    tasks.append(self.handle_external_iopub(loop))
+
+                main_task = asyncio.wait(tasks, loop=loop, return_when=asyncio.FIRST_COMPLETED)
+                _, pending = loop.run_until_complete(main_task)
+
+                for task in pending:
+                    task.cancel()
+                try:
+                    loop.run_until_complete(asyncio.gather(*pending))
+                except asyncio.CancelledError:
+                    pass
+                loop.stop()
+                loop.close()
                 break
             except KeyboardInterrupt:
                 print("\nKeyboardInterrupt escaped interact()\n")
@@ -667,6 +704,18 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             return True
         else:
             return from_here
+
+    @asyncio.coroutine
+    def handle_external_iopub(self, loop=None):
+        if loop is None:
+            loop = asyncio.get_event_loop()
+
+        while self.keep_running:
+            # we need to check for keep_running from time to time as
+            # we are blocking in an executor block which cannot be cancelled.
+            poll_result = yield from loop.run_in_executor(None, self.client.iopub_channel.socket.poll, 500)
+            if(poll_result):
+                self.handle_iopub()
 
     def handle_iopub(self, msg_id=''):
         """Process messages on the IOPub channel
