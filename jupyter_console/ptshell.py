@@ -206,7 +206,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         """
         Callable object called via 'callable' image handler with one
         argument, `data`, which is `msg["content"]["data"]` where
-        `msg` is the message from iopub channel.  For exmaple, you can
+        `msg` is the message from iopub channel.  For example, you can
         find base64 encoded PNG data as `data['image/png']`. If your function
         can't handle the data supplied, it should return `False` to indicate
         this.
