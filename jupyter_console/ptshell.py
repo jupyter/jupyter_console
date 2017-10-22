@@ -32,7 +32,7 @@ from . import __version__
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
-from prompt_toolkit.filters import HasFocus, HasSelection, ViInsertMode, EmacsInsertMode
+from prompt_toolkit.filters import Condition, HasFocus, HasSelection, ViInsertMode, EmacsInsertMode
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.shortcuts import create_prompt_application, create_eventloop, create_output
 from prompt_toolkit.interface import CommandLineInterface
@@ -42,6 +42,7 @@ from prompt_toolkit.key_binding.bindings.vi import ViStateFilter
 from prompt_toolkit.keys import Keys
 from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.styles import PygmentsStyle
+from prompt_toolkit.utils import suspend_to_background_supported
 
 from pygments.styles import get_style_by_name
 from pygments.lexers import get_lexer_by_name
@@ -378,6 +379,10 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         @kbmanager.registry.add_binding(Keys.ControlBackslash, filter=HasFocus(DEFAULT_BUFFER))
         def _(event):
             raise EOFError
+
+        @kbmanager.registry.add_binding(Keys.ControlZ, filter=Condition(lambda cli: suspend_to_background_supported()))
+        def _(event):
+            event.cli.suspend_to_background()
 
         # Pre-populate history from IPython's history database
         history = InMemoryHistory()
