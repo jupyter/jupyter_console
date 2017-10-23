@@ -9,3 +9,5 @@ dependencies:
   - jupyter_client
   - sphinx
   - sphinx_rtd_theme
+  - pip:
+    - sphinxcontrib_github_alt
