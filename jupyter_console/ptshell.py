@@ -32,7 +32,7 @@ from . import __version__
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
-from prompt_toolkit.filters import Condition, HasFocus, HasSelection, ViInsertMode, EmacsInsertMode
+from prompt_toolkit.filters import Condition, HasFocus, HasSelection, ViInsertMode, EmacsInsertMode, IsDone
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.shortcuts import create_prompt_application, create_eventloop, create_output
 from prompt_toolkit.interface import CommandLineInterface
@@ -41,6 +41,7 @@ from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.key_binding.bindings.vi import ViStateFilter
 from prompt_toolkit.keys import Keys
 from prompt_toolkit.layout.lexers import PygmentsLexer
+from prompt_toolkit.layout.processors import ConditionalProcessor, HighlightMatchingBracketProcessor
 from prompt_toolkit.styles import PygmentsStyle
 from prompt_toolkit.utils import suspend_to_background_supported
 
@@ -247,6 +248,10 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         """
     )
 
+    highlight_matching_brackets = Bool(True,
+        help="Highlight matching brackets.",
+    ).tag(config=True)
+
     manager = Instance('jupyter_client.KernelManager', allow_none=True)
     client = Instance('jupyter_client.KernelClient', allow_none=True)
     def _client_changed(self, name, old, new):
@@ -422,6 +427,14 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         editing_mode = getattr(EditingMode, self.editing_mode.upper())
         langinfo = self.kernel_info.get('language_info', {})
         lexer = langinfo.get('pygments_lexer', langinfo.get('name', 'text'))
+
+        # If enabled in the settings, highlight matching brackets
+        # when the DEFAULT_BUFFER has the focus
+        extra_input_processors = [ConditionalProcessor(
+            processor=HighlightMatchingBracketProcessor(chars='[](){}'),
+            filter=HasFocus(DEFAULT_BUFFER) & ~IsDone() &
+            Condition(lambda cli: self.highlight_matching_brackets))]
+
         app = create_prompt_application(multiline=True,
                             editing_mode=editing_mode,
                             lexer=PygmentsLexer(get_pygments_lexer(lexer)),
@@ -432,6 +445,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                             completer=JupyterPTCompleter(self.Completer),
                             enable_history_search=True,
                             style=style,
+                            extra_input_processors=extra_input_processors
         )
 
         self._eventloop = create_eventloop()
