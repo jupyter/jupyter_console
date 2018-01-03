@@ -3,6 +3,11 @@ Changes in Jupyter console
 
 A summary of changes in Jupyter console releases.
 
+5.3
+---
+
+- Highlight matching parentheses. :ghpull:`147`
+
 5.2
 ---
 
