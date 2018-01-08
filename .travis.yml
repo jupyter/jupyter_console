@@ -11,6 +11,7 @@ before_install:
 install:
     - pip install --upgrade setuptools pip
     - pip install -f travis-wheels/wheelhouse --pre -e . coveralls
+    - pip install tornado<5
     - python -m ipykernel.kernelspec --user
 script:
     - nosetests --with-coverage --cover-package=jupyter_console jupyter_console
