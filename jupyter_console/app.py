@@ -112,6 +112,7 @@ class ZMQTerminalIPythonApp(JupyterApp, JupyterConsoleApp):
         self.shell = ZMQTerminalInteractiveShell.instance(parent=self,
                         manager=self.kernel_manager,
                         client=self.kernel_client,
+                        confirm_exit=self.confirm_exit,
         )
         self.shell.own_kernel = not self.existing
 

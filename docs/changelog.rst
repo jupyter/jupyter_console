@@ -7,6 +7,9 @@ A summary of changes in Jupyter console releases.
 ---
 
 - Highlight matching parentheses. :ghpull:`147`
+- The config option ``JupyterConsoleApp.confirm_exit`` replaces
+  ``ZMQTerminalInteractiveShell.confirm_exit``, to avoid redundancy.
+  :ghpull:`141`.
 
 5.2
 ---

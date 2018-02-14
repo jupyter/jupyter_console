@@ -241,7 +241,9 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
     )
 
 
-    confirm_exit = Bool(True, config=True,
+    # This is configurable on JupyterConsoleApp; this copy is not configurable
+    # to avoid a duplicate config option.
+    confirm_exit = Bool(True,
         help="""Set to display confirmation dialog on exit.
         You can always use 'exit' or 'quit', to force a
         direct exit without any confirmation.
