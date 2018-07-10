@@ -32,23 +32,27 @@ from . import __version__
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
-from prompt_toolkit.filters import Condition, HasFocus, HasSelection, ViInsertMode, EmacsInsertMode, IsDone
+from prompt_toolkit.filters import (Condition, has_focus, has_selection,
+                                    vi_insert_mode, emacs_insert_mode, is_done)
 from prompt_toolkit.history import InMemoryHistory
-from prompt_toolkit.shortcuts import create_prompt_application, create_eventloop, create_output
-from prompt_toolkit.interface import CommandLineInterface
-from prompt_toolkit.key_binding.manager import KeyBindingManager
-from prompt_toolkit.key_binding.vi_state import InputMode
-from prompt_toolkit.key_binding.bindings.vi import ViStateFilter
-from prompt_toolkit.keys import Keys
-from prompt_toolkit.layout.lexers import PygmentsLexer
-from prompt_toolkit.layout.processors import ConditionalProcessor, HighlightMatchingBracketProcessor
-from prompt_toolkit.styles import PygmentsStyle
+from prompt_toolkit.shortcuts.prompt import PromptSession
+from prompt_toolkit.shortcuts import print_formatted_text
+from prompt_toolkit.key_binding import KeyBindings
+from prompt_toolkit.lexers import PygmentsLexer
+from prompt_toolkit.layout.processors import (ConditionalProcessor,
+                                              HighlightMatchingBracketProcessor)
+from prompt_toolkit.styles import merge_styles
+from prompt_toolkit.styles.pygments import (style_from_pygments_cls,
+                                            style_from_pygments_dict)
+from prompt_toolkit.formatted_text import PygmentsTokens
+from prompt_toolkit.output import ColorDepth
 from prompt_toolkit.utils import suspend_to_background_supported
 
 from pygments.styles import get_style_by_name
 from pygments.lexers import get_lexer_by_name
 from pygments.util import ClassNotFound
 from pygments.token import Token
+
 
 def ask_yes_no(prompt, default=None, interrupt=None):
     """Asks a question and returns a boolean (y/n) answer.
@@ -63,11 +67,11 @@ def ask_yes_no(prompt, default=None, interrupt=None):
 
     Valid answers are: y/yes/n/no (match is not case sensitive)."""
 
-    answers = {'y':True,'n':False,'yes':True,'no':False}
+    answers = {'y': True, 'n': False, 'yes': True, 'no': False}
     ans = None
     while ans not in answers.keys():
         try:
-            ans = input(prompt+' ').lower()
+            ans = input(prompt + ' ').lower()
             if not ans:  # response was an empty string
                 ans = default
         except KeyboardInterrupt:
@@ -81,6 +85,7 @@ def ask_yes_no(prompt, default=None, interrupt=None):
                 raise
 
     return answers[ans]
+
 
 def get_pygments_lexer(name):
     name = name.lower()
@@ -109,12 +114,13 @@ class JupyterPTCompleter(Completer):
             return
 
         content = self.jup_completer.complete_request(
-                            code=document.text,
-                            cursor_pos=document.cursor_position
+            code=document.text,
+            cursor_pos=document.cursor_position
         )
         start_pos = content['cursor_start'] - document.cursor_position
         for m in content['matches']:
             yield Completion(m, start_position=start_pos)
+
 
 class ZMQTerminalInteractiveShell(SingletonConfigurable):
     readline_use = False
@@ -240,7 +246,6 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         """
     )
 
-
     # This is configurable on JupyterConsoleApp; this copy is not configurable
     # to avoid a duplicate config option.
     confirm_exit = Bool(True,
@@ -256,6 +261,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
 
     manager = Instance('jupyter_client.KernelManager', allow_none=True)
     client = Instance('jupyter_client.KernelClient', allow_none=True)
+
     def _client_changed(self, name, old, new):
         self.session_id = new.session.session
     session_id = Unicode()
@@ -297,14 +303,14 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         self.history_manager = ZMQHistoryManager(client=self.client)
         self.configurables.append(self.history_manager)
 
-    def get_prompt_tokens(self, cli):
+    def get_prompt_tokens(self):
         return [
             (Token.Prompt, 'In ['),
             (Token.PromptNum, str(self.execution_count)),
             (Token.Prompt, ']: '),
         ]
 
-    def get_continuation_tokens(self, cli, width):
+    def get_continuation_tokens(self, width):
         return [
             (Token.Prompt, (' ' * (width - 2)) + ': '),
         ]
@@ -317,9 +323,12 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         ]
 
     def print_out_prompt(self):
-        self.pt_cli.print_tokens(self.get_out_prompt_tokens())
+        tokens = self.get_out_prompt_tokens()
+        print_formatted_text(PygmentsTokens(tokens), end='',
+                             style = self.pt_cli.app.style)
 
     kernel_info = {}
+
     def init_kernel_info(self):
         """Wait for a kernel to be ready, and store kernel info"""
         timeout = self.kernel_timeout
@@ -352,14 +361,13 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                 lambda: print('Out[%d]: ' % self.execution_count, end='')
             return
 
-        kbmanager = KeyBindingManager.for_prompt()
-        insert_mode = ViInsertMode() | EmacsInsertMode()
-        # Ctrl+J == Enter, seemingly
-        @kbmanager.registry.add_binding(Keys.ControlJ,
-                            filter=(HasFocus(DEFAULT_BUFFER)
-                                    & ~HasSelection()
-                                    & insert_mode
-                                   ))
+        kb = KeyBindings()
+        insert_mode = vi_insert_mode | emacs_insert_mode
+
+        @kb.add("enter", filter=(has_focus(DEFAULT_BUFFER)
+                                 & ~has_selection
+                                 & insert_mode
+                                 ))
         def _(event):
             b = event.current_buffer
             d = b.document
@@ -374,20 +382,20 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
 
             more, indent = self.check_complete(d.text)
 
-            if (not more) and b.accept_action.is_returnable:
-                b.accept_action.validate_and_handle(event.cli, b)
+            if (not more) and b.accept_handler:
+                b.validate_and_handle()
             else:
                 b.insert_text('\n' + indent)
 
-        @kbmanager.registry.add_binding(Keys.ControlC, filter=HasFocus(DEFAULT_BUFFER))
+        @kb.add("c-c", filter=has_focus(DEFAULT_BUFFER))
         def _(event):
             event.current_buffer.reset()
 
-        @kbmanager.registry.add_binding(Keys.ControlBackslash, filter=HasFocus(DEFAULT_BUFFER))
+        @kb.add("c-\\", filter=has_focus(DEFAULT_BUFFER))
         def _(event):
             raise EOFError
 
-        @kbmanager.registry.add_binding(Keys.ControlZ, filter=Condition(lambda cli: suspend_to_background_supported()))
+        @kb.add("c-z", filter=Condition(lambda: suspend_to_background_supported()))
         def _(event):
             event.cli.suspend_to_background()
 
@@ -399,7 +407,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             # Ignore blank lines and consecutive duplicates
             cell = cast_unicode_py2(cell.rstrip())
             if cell and (cell != last_cell):
-                history.append(cell)
+                history.append_string(cell)
 
         style_overrides = {
             Token.Prompt: '#009900',
@@ -423,8 +431,10 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                 Token.Name.Namespace: 'bold #2080D0',
             })
         style_overrides.update(self.highlighting_style_overrides)
-        style = PygmentsStyle.from_defaults(pygments_style_cls=style_cls,
-                                            style_dict=style_overrides)
+        style = merge_styles([
+            style_from_pygments_cls(style_cls),
+            style_from_pygments_dict(style_overrides),
+        ])
 
         editing_mode = getattr(EditingMode, self.editing_mode.upper())
         langinfo = self.kernel_info.get('language_info', {})
@@ -432,34 +442,34 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
 
         # If enabled in the settings, highlight matching brackets
         # when the DEFAULT_BUFFER has the focus
-        extra_input_processors = [ConditionalProcessor(
+        input_processors = [ConditionalProcessor(
             processor=HighlightMatchingBracketProcessor(chars='[](){}'),
-            filter=HasFocus(DEFAULT_BUFFER) & ~IsDone() &
-            Condition(lambda cli: self.highlight_matching_brackets))]
+            filter=has_focus(DEFAULT_BUFFER) & ~is_done &
+            Condition(lambda: self.highlight_matching_brackets))
+        ]
 
-        app = create_prompt_application(multiline=True,
-                            editing_mode=editing_mode,
-                            lexer=PygmentsLexer(get_pygments_lexer(lexer)),
-                            get_prompt_tokens=self.get_prompt_tokens,
-                            get_continuation_tokens=self.get_continuation_tokens,
-                            key_bindings_registry=kbmanager.registry,
-                            history=history,
-                            completer=JupyterPTCompleter(self.Completer),
-                            enable_history_search=True,
-                            style=style,
-                            extra_input_processors=extra_input_processors
-        )
+        self.pt_cli = PromptSession(
+            message=(lambda: PygmentsTokens(self.get_prompt_tokens())),
+            multiline=True,
+            editing_mode=editing_mode,
+            lexer=PygmentsLexer(get_pygments_lexer(lexer)),
+            prompt_continuation=(
+                lambda width, lineno, is_soft_wrap:
+                PygmentsTokens(self.get_continuation_tokens(width))
+            ),
+            key_bindings=kb,
+            history=history,
+            completer=JupyterPTCompleter(self.Completer),
+            enable_history_search=True,
+            style=style,
+            input_processors=input_processors,
+            color_depth=(ColorDepth.TRUE_COLOR if self.true_color else None),
 
-        self._eventloop = create_eventloop()
-        self.pt_cli = CommandLineInterface(app,
-                            eventloop=self._eventloop,
-                            output=create_output(true_color=self.true_color),
         )
 
     def prompt_for_code(self):
-        document = self.pt_cli.run(pre_run=self.pre_prompt,
-                                   reset_current_buffer=True)
-        return document.text
+        document = self.pt_cli.app.run(pre_run=self.pre_prompt)
+        return document
 
     def init_io(self):
         if sys.platform not in {'win32', 'cli'}:
@@ -472,7 +482,8 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         if self.use_kernel_is_complete:
             msg_id = self.client.is_complete(code)
             try:
-                return self.handle_is_complete_reply(msg_id, timeout=self.kernel_is_complete_timeout)
+                return self.handle_is_complete_reply(msg_id,
+                                                     timeout=self.kernel_is_complete_timeout)
             except SyntaxError:
                 return False, ""
         else:
@@ -495,10 +506,11 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             # this. Adding a callable to pre_run_callables does what we need
             # after the buffer is reset.
             s = cast_unicode_py2(self.next_input)
+
             def set_doc():
-                self.pt_cli.application.buffer.document = Document(s)
+                self.pt_cli.app.buffer.document = Document(s)
             if hasattr(self.pt_cli, 'pre_run_callables'):
-                self.pt_cli.pre_run_callables.append(set_doc)
+                self.pt_cli.app.pre_run_callables.append(set_doc)
             else:
                 # Older version of prompt_toolkit; it's OK to set the document
                 # directly here.
@@ -512,8 +524,8 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             try:
                 code = self.prompt_for_code()
             except EOFError:
-                if (not self.confirm_exit) \
-                    or ask_yes_no('Do you really want to exit ([y]/n)?','y','n'):
+                if (not self.confirm_exit) or \
+                        ask_yes_no('Do you really want to exit ([y]/n)?', 'y', 'n'):
                     self.ask_exit()
 
             else:
@@ -535,10 +547,10 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             self._eventloop.close()
         if self.keepkernel and not self.own_kernel:
             print('keeping kernel alive')
-        elif self.keepkernel and self.own_kernel :
+        elif self.keepkernel and self.own_kernel:
             print("owning kernel, cannot keep it alive")
             self.client.shutdown()
-        else :
+        else:
             print("Shutting down kernel")
             self.client.shutdown()
 
@@ -762,7 +774,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                     if not self.from_here(sub_msg):
                         sys.stdout.write(self.other_output_prefix)
                     sys.stdout.write('In [{}]: '.format(content['execution_count']))
-                    sys.stdout.write(content['code']+'\n')
+                    sys.stdout.write(content['code'] + '\n')
 
                 elif msg_type == 'clear_output':
                     if sub_msg["content"]["wait"]:
@@ -773,7 +785,6 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                 elif msg_type == 'error':
                     for frame in sub_msg["content"]["traceback"]:
                         print(frame, file=sys.stderr)
-
 
     _imagemime = {
         'image/png': 'png',
@@ -822,7 +833,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         imageformat = self._imagemime[mime]
         filename = 'tmp.{0}'.format(imageformat)
         with NamedFileInTemporaryDirectory(filename) as f, \
-                    open(os.devnull, 'w') as devnull:
+                open(os.devnull, 'w') as devnull:
             f.write(raw)
             f.flush()
             fmt = dict(file=f.name, format=imageformat)
@@ -837,7 +848,6 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             res = True
         return res
 
-
     def handle_input_request(self, msg_id, timeout=0.1):
         """ Method to capture raw_input
         """
@@ -847,10 +857,11 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         if msg_id == req["parent_header"].get("msg_id"):
             # wrap SIGINT handler
             real_handler = signal.getsignal(signal.SIGINT)
-            def double_int(sig,frame):
+
+            def double_int(sig, frame):
                 # call real handler (forwards sigint to kernel),
                 # then raise local interrupt, stopping local raw_input
-                real_handler(sig,frame)
+                real_handler(sig, frame)
                 raise KeyboardInterrupt
             signal.signal(signal.SIGINT, double_int)
             content = req['content']
@@ -869,5 +880,6 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
 
             # only send stdin reply if there *was not* another request
             # or execution finished while we were reading.
-            if not (self.client.stdin_channel.msg_ready() or self.client.shell_channel.msg_ready()):
+            if not (self.client.stdin_channel.msg_ready() or
+                    self.client.shell_channel.msg_ready()):
                 self.client.input(raw_data)
