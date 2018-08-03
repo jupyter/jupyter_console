@@ -35,6 +35,7 @@ from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
 from prompt_toolkit.filters import (Condition, has_focus, has_selection,
                                     vi_insert_mode, emacs_insert_mode, is_done)
 from prompt_toolkit.history import InMemoryHistory
+from prompt_toolkit.patch_stdout import patch_stdout
 from prompt_toolkit.shortcuts.prompt import PromptSession
 from prompt_toolkit.shortcuts import print_formatted_text
 from prompt_toolkit.key_binding import KeyBindings
@@ -468,8 +469,18 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         )
 
     def prompt_for_code(self):
-        document = self.pt_cli.app.run(pre_run=self.pre_prompt)
-        return document
+        if self.next_input:
+            default = self.next_input
+            self.next_input = None
+        else:
+            default = ''
+
+        with patch_stdout(raw=True):
+            text = self.pt_cli.prompt(
+                default=default,
+#                pre_run=self.pre_prompt,# reset_current_buffer=True,
+            )
+        return text
 
     def init_io(self):
         if sys.platform not in {'win32', 'cli'}:
