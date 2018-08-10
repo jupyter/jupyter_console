@@ -9,7 +9,9 @@ sudo: false
 before_install:
     - git clone --quiet --depth 1 https://github.com/minrk/travis-wheels travis-wheels
 install:
-    - pip install --upgrade setuptools pip
+    - pip install --upgrade pip
+    - pip install --upgrade setuptools
+    - pip install git+git://github.com/ipython/ipython.git#egg=ipython
     - pip install -f travis-wheels/wheelhouse --pre -e . coveralls
     - python -m ipykernel.kernelspec --user
 script:
