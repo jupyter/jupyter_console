@@ -15,13 +15,34 @@ name = 'jupyter_console'
 
 import sys
 
-v = sys.version_info
-if v[:2] < (2,7) or (v[0] >= 3 and v[:2] < (3,3)):
-    error = "ERROR: %s requires Python version 2.7 or 3.3 or above." % name
+
+if sys.version_info < (3, 4):
+    pip_message = 'This may be due to an out of date pip. Make sure you have pip >= 9.0.1.'
+    try:
+        import pip
+        pip_version = tuple([int(x) for x in pip.__version__.split('.')[:3]])
+        if pip_version < (9, 0, 1) :
+            pip_message = 'Your pip version is out of date, please install pip >= 9.0.1. '\
+            'pip {} detected.'.format(pip.__version__)
+        else:
+            # pip is new enough - it must be something else
+            pip_message = ''
+    except Exception:
+        pass
+
+
+    error = """
+Jupyter_Console 6.0+ supports Python 3.4 and above.
+When using Python 2.7, please install and older version of Jupyter Console
+Python 3.3 was supported up to Jupyter Console 5.x.
+
+Python {py} detected.
+{pip}
+""".format(py=sys.version_info, pip=pip_message )
+
     print(error, file=sys.stderr)
     sys.exit(1)
 
-PY3 = (sys.version_info[0] >= 3)
 
 #-----------------------------------------------------------------------------
 # get on with it
@@ -65,9 +86,7 @@ setup_args = dict(
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: BSD License',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
     ],
 )
 
@@ -84,10 +103,13 @@ install_requires = setuptools_args['install_requires'] = [
 ]
 
 extras_require = setuptools_args['extras_require'] = {
-    'test:python_version=="2.7"': ['mock'],
     'test:sys_platform != "win32"': ['pexpect'],
 
+
 }
+
+setuptools_args['python_requires'] = '>=3.4'
+
 
 setuptools_args['entry_points'] = {
         'console_scripts': [
