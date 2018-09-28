@@ -15,3 +15,5 @@ __pycache__
 \#*#
 .#*
 .coverage
+# PyCharm project cache
+.idea
