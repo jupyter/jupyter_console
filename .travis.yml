@@ -8,7 +8,6 @@ before_install:
 install:
     - pip install --upgrade pip
     - pip install --upgrade setuptools
-    - pip install git+git://github.com/ipython/ipython.git#egg=ipython
     - pip install -f travis-wheels/wheelhouse --pre -e . coveralls
     - python -m ipykernel.kernelspec --user
 script:
