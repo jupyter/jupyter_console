@@ -412,8 +412,16 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                     return
 
     def show_banner(self):
-        print(self.banner.format(version=__version__,
-                         kernel_banner=self.kernel_info.get('banner', '')),end='',flush=True)
+        print(
+            self.banner.format(
+                version=__version__, kernel_banner=self.kernel_info.get("banner", "")
+            ),
+            end="",
+            flush=True,
+        )
+        banner = self.banner.format(
+            version=__version__, kernel_banner=self.kernel_info.get("banner", "")
+        )
 
     def init_prompt_toolkit_cli(self):
         if self.simple_prompt or ('JUPYTER_CONSOLE_TEST' in os.environ):

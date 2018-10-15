@@ -7,4 +7,15 @@ See PEP 440 https://www.python.org/dev/peps/pep-0440/
 
 version_info = (6, 1, 1, 'dev')
 
-__version__ = '.'.join(map(str, version_info[:3])) + ''.join(version_info[3:])
+# unlike `.dev`, alpha, beta and rc _must not_ have dots,
+# or the wheel and tgz won't look to pip like the same version.
+
+__version__ = (
+    ".".join(map(str, version_info))
+    .replace(".b", "b")
+    .replace(".a", "a")
+    .replace(".rc", "rc")
+)
+assert ".b" not in __version__
+assert ".a" not in __version__
+assert ".rc" not in __version__
