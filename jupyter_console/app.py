@@ -147,7 +147,7 @@ class ZMQTerminalIPythonApp(JupyterApp, JupyterConsoleApp):
         """optionally display the banner"""
         self.shell.show_banner()
         # Make sure there is a space below the banner.
-        if self.log_level <= logging.INFO: print()
+        #if self.log_level <= logging.INFO: print()
 
     def start(self):
         # JupyterApp.start dispatches on NoStart
