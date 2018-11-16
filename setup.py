@@ -81,6 +81,9 @@ install_requires = setuptools_args['install_requires'] = [
     'ipykernel', # bless IPython kernel for now
     'prompt_toolkit>=1.0.0,<2.0.0',
     'pygments',
+    'colorama;sys_platform=="win32"',
+    'win_unicode_console>=0.5;sys_platform=="win32" and python_version < "3.6"',
+
 ]
 
 extras_require = setuptools_args['extras_require'] = {
