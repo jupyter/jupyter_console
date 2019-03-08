@@ -9,7 +9,6 @@ input, there is no real readline support, among other limitations.
 
 from __future__ import print_function
 
-import logging
 import signal
 import sys
 
@@ -18,7 +17,7 @@ from traitlets import (
 )
 from traitlets.config import catch_config_error, boolean_flag
 
-from jupyter_core.application import JupyterApp, base_aliases, base_flags, NoStart
+from jupyter_core.application import JupyterApp, base_aliases, base_flags
 from jupyter_client.consoleapp import (
         JupyterConsoleApp, app_aliases, app_flags,
     )
