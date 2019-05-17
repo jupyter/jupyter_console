@@ -36,16 +36,24 @@ if not PTK3:
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
-from prompt_toolkit.filters import (Condition, has_focus, has_selection,
-                                    vi_insert_mode, emacs_insert_mode, is_done)
+from prompt_toolkit.filters import (
+    Condition,
+    has_focus,
+    has_selection,
+    vi_insert_mode,
+    emacs_insert_mode,
+    is_done,
+)
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.patch_stdout import patch_stdout
 from prompt_toolkit.shortcuts.prompt import PromptSession
-from prompt_toolkit.shortcuts import print_formatted_text
+from prompt_toolkit.shortcuts import print_formatted_text, CompleteStyle
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.lexers import PygmentsLexer
-from prompt_toolkit.layout.processors import (ConditionalProcessor,
-                                              HighlightMatchingBracketProcessor)
+from prompt_toolkit.layout.processors import (
+    ConditionalProcessor,
+    HighlightMatchingBracketProcessor,
+)
 from prompt_toolkit.styles import merge_styles
 from prompt_toolkit.styles.pygments import (style_from_pygments_cls,
                                             style_from_pygments_dict)
@@ -267,15 +275,25 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         help="""Set to display confirmation dialog on exit.
         You can always use 'exit' or 'quit', to force a
         direct exit without any confirmation.
-        """
+        """,
     )
 
-    highlight_matching_brackets = Bool(True,
-        help="Highlight matching brackets.",
+    display_completions = Enum(
+        ("column", "multicolumn", "readlinelike"),
+        help=(
+            "Options for displaying tab completions, 'column', 'multicolumn', and "
+            "'readlinelike'. These options are for `prompt_toolkit`, see "
+            "`prompt_toolkit` documentation for more information."
+        ),
+        default_value="multicolumn",
     ).tag(config=True)
 
-    manager = Instance('jupyter_client.KernelManager', allow_none=True)
-    client = Instance('jupyter_client.KernelClient', allow_none=True)
+    highlight_matching_brackets = Bool(True, help="Highlight matching brackets.",).tag(
+        config=True
+    )
+
+    manager = Instance("jupyter_client.KernelManager", allow_none=True)
+    client = Instance("jupyter_client.KernelClient", allow_none=True)
 
     def _client_changed(self, name, old, new):
         self.session_id = new.session.session
@@ -351,8 +369,17 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
 
     def print_remote_prompt(self, ec=None):
         tokens = self.get_remote_prompt_tokens() + self.get_prompt_tokens(ec=ec)
-        print_formatted_text(PygmentsTokens(tokens), end='',
-                             style = self.pt_cli.app.style)
+        print_formatted_text(
+            PygmentsTokens(tokens), end="", style=self.pt_cli.app.style
+        )
+
+    @property
+    def pt_complete_style(self):
+        return {
+            "multicolumn": CompleteStyle.MULTI_COLUMN,
+            "column": CompleteStyle.COLUMN,
+            "readlinelike": CompleteStyle.READLINE_LIKE,
+        }[self.display_completions]
 
     kernel_info = {}
 
@@ -487,11 +514,13 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         self.pt_cli = PromptSession(
             message=(lambda: PygmentsTokens(self.get_prompt_tokens())),
             multiline=True,
+            complete_style=self.pt_complete_style,
             editing_mode=editing_mode,
             lexer=PygmentsLexer(get_pygments_lexer(lexer)),
             prompt_continuation=(
-                lambda width, lineno, is_soft_wrap:
-                PygmentsTokens(self.get_continuation_tokens(width))
+                lambda width, lineno, is_soft_wrap: PygmentsTokens(
+                    self.get_continuation_tokens(width)
+                )
             ),
             key_bindings=kb,
             history=history,
