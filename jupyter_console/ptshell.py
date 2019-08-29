@@ -1,6 +1,7 @@
 """IPython terminal interface using prompt_toolkit in place of readline"""
 from __future__ import print_function
 
+import asyncio
 import base64
 import errno
 from getpass import getpass
@@ -48,6 +49,7 @@ from prompt_toolkit.styles.pygments import (style_from_pygments_cls,
 from prompt_toolkit.formatted_text import PygmentsTokens
 from prompt_toolkit.output import ColorDepth
 from prompt_toolkit.utils import suspend_to_background_supported
+from prompt_toolkit.eventloop.defaults import use_asyncio_event_loop
 
 from pygments.styles import get_style_by_name
 from pygments.lexers import get_lexer_by_name
@@ -449,6 +451,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             Condition(lambda: self.highlight_matching_brackets))
         ]
 
+        use_asyncio_event_loop()
         self.pt_cli = PromptSession(
             message=(lambda: PygmentsTokens(self.get_prompt_tokens())),
             multiline=True,
@@ -468,7 +471,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
 
         )
 
-    def prompt_for_code(self):
+    async def prompt_for_code(self):
         if self.next_input:
             default = self.next_input
             self.next_input = None
@@ -476,8 +479,8 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             default = ''
 
         with patch_stdout(raw=True):
-            text = self.pt_cli.prompt(
-                default=default,
+            text = await self.pt_cli.prompt(
+                default=default, async_=True
 #                pre_run=self.pre_prompt,# reset_current_buffer=True,
             )
         return text
@@ -528,12 +531,12 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                 set_doc()
             self.next_input = None
 
-    def interact(self, display_banner=None):
+    async def interact(self, display_banner=None):
         while self.keep_running:
             print('\n', end='')
 
             try:
-                code = self.prompt_for_code()
+                code = await self.prompt_for_code()
             except EOFError:
                 if (not self.confirm_exit) or \
                         ask_yes_no('Do you really want to exit ([y]/n)?', 'y', 'n'):
@@ -545,11 +548,27 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
 
     def mainloop(self):
         self.keepkernel = not self.own_kernel
+        loop = asyncio.get_event_loop()
         # An extra layer of protection in case someone mashing Ctrl-C breaks
         # out of our internal code.
         while True:
             try:
-                self.interact()
+                tasks = [self.interact()]
+
+                if self.include_other_output:
+                    # only poll the iopub channel asynchronously if we
+                    # wish to include external content
+                    tasks.append(self.handle_external_iopub(loop))
+
+                main_task = asyncio.wait(tasks, loop=loop, return_when=asyncio.FIRST_COMPLETED)
+                _, pending = loop.run_until_complete(main_task)
+
+                for task in pending:
+                    task.cancel()
+                try:
+                    loop.run_until_complete(asyncio.gather(*pending))
+                except asyncio.CancelledError:
+                    pass
                 break
             except KeyboardInterrupt:
                 print("\nKeyboardInterrupt escaped interact()\n")
@@ -711,6 +730,17 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             return True
         else:
             return from_here
+
+    async def handle_external_iopub(self, loop=None):
+        if loop is None:
+            loop = asyncio.get_event_loop()
+
+        while self.keep_running:
+            # we need to check for keep_running from time to time as
+            # we are blocking in an executor block which cannot be cancelled.
+            poll_result = await loop.run_in_executor(None, self.client.iopub_channel.socket.poll, 500)
+            if(poll_result):
+                self.handle_iopub()
 
     def handle_iopub(self, msg_id=''):
         """Process messages on the IOPub channel
