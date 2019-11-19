@@ -273,6 +273,10 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
     highlight_matching_brackets = Bool(True,
         help="Highlight matching brackets.",
     ).tag(config=True)
+    
+    prompt_includes_vi_mode = Bool(True,
+        help="Display the current vi mode (when using vi editing mode)."
+    ).tag(config=True)
 
     manager = Instance('jupyter_client.KernelManager', allow_none=True)
     client = Instance('jupyter_client.KernelClient', allow_none=True)
@@ -318,10 +322,17 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         self.history_manager = ZMQHistoryManager(client=self.client)
         self.configurables.append(self.history_manager)
 
+    def vi_mode(self):
+        if (getattr(self, 'editing_mode', None) == 'vi'
+                and self.prompt_includes_vi_mode):
+            return '['+str(self.pt_cli.app.vi_state.input_mode)[3:6]+'] '
+        return ''
+    
     def get_prompt_tokens(self, ec=None):
         if ec is None:
             ec = self.execution_count
         return [
+            (Token.Prompt, self.vi_mode()),
             (Token.Prompt, 'In ['),
             (Token.PromptNum, str(ec)),
             (Token.Prompt, ']: '),
