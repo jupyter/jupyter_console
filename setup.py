@@ -98,7 +98,7 @@ install_requires = setuptools_args['install_requires'] = [
     'jupyter_client',
     'ipython',
     'ipykernel', # bless IPython kernel for now
-    'prompt_toolkit>=2.0.0,<2.1.0,<3.1.0,!=3.0.0,!=3.0.1',
+    'prompt_toolkit>=2.0.0,<3.1.0,!=3.0.0,!=3.0.1',
     'pygments',
 ]
 
