@@ -715,8 +715,6 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
     include_other_output = Bool(False, config=True,
         help="""Whether to include output from clients
         other than this one sharing the same kernel.
-
-        Outputs are not displayed until enter is pressed.
         """
     )
     other_output_prefix = Unicode("[remote] ", config=True,
