@@ -25,13 +25,20 @@ from .completer import ZMQCompleter
 from .zmqhistory import ZMQHistoryManager
 from . import __version__
 
+# Discriminate version3 for asyncio
+from prompt_toolkit import __version__ as ptk_version
+PTK3 = ptk_version.startswith('3.')
+
+if not PTK3:
+    # use_ayncio_event_loop obsolete in PKT3
+    from prompt_toolkit.eventloop.defaults import use_asyncio_event_loop
+
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
 from prompt_toolkit.filters import (Condition, has_focus, has_selection,
                                     vi_insert_mode, emacs_insert_mode, is_done)
 from prompt_toolkit.history import InMemoryHistory
-from prompt_toolkit.eventloop.defaults import use_asyncio_event_loop
 from prompt_toolkit.patch_stdout import patch_stdout
 from prompt_toolkit.shortcuts.prompt import PromptSession
 from prompt_toolkit.shortcuts import print_formatted_text
@@ -460,7 +467,9 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         ]
 
         # Tell prompt_toolkit to use the asyncio event loop.
-        use_asyncio_event_loop()
+        # Obsolete in prompt_toolkit.v3
+        if not PTK3:
+            use_asyncio_event_loop()
 
         self.pt_cli = PromptSession(
             message=(lambda: PygmentsTokens(self.get_prompt_tokens())),
@@ -488,8 +497,10 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         else:
             default = ''
 
-        text = yield from self.pt_cli.prompt(
-            default=default, async_=True)
+        if PTK3:
+            text = yield from self.pt_cli.prompt_async(default=default)
+        else:
+            text = yield from self.pt_cli.prompt(default=default, async_=True)
 
         return text
 
@@ -540,7 +551,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             self.next_input = None
 
     @asyncio.coroutine
-    def interact(self, display_banner=None):
+    def interact(self, loop=None, display_banner=None):
         while self.keep_running:
             print('\n', end='')
 
@@ -562,12 +573,12 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         # out of our internal code.
         while True:
             try:
-                tasks = [self.interact(loop)]
+                tasks = [self.interact(loop=loop)]
 
                 if self.include_other_output:
                     # only poll the iopub channel asynchronously if we
                     # wish to include external content
-                    tasks.append(self.handle_external_iopub(loop))
+                    tasks.append(self.handle_external_iopub(loop=loop))
 
                 main_task = asyncio.wait(tasks, loop=loop, return_when=asyncio.FIRST_COMPLETED)
                 _, pending = loop.run_until_complete(main_task)
