@@ -40,7 +40,7 @@ from prompt_toolkit.layout.processors import (ConditionalProcessor,
 from prompt_toolkit.styles import merge_styles
 from prompt_toolkit.styles.pygments import (style_from_pygments_cls,
                                             style_from_pygments_dict)
-from prompt_toolkit.formatted_text import PygmentsTokens
+from prompt_toolkit.formatted_text import PygmentsTokens, FormattedText
 from prompt_toolkit.output import ColorDepth
 from prompt_toolkit.utils import suspend_to_background_supported
 
@@ -775,11 +775,29 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                         if 'text/plain' in data:
                             print(data['text/plain'])
 
+                # If execute input: print it
                 elif msg_type == 'execute_input':
                     content = sub_msg['content']
+
+                    # New line
+                    sys.stdout.write('\n')
+                    sys.stdout.flush()
+
+                    # With `[remote]` prefix
                     if not self.from_here(sub_msg):
-                        sys.stdout.write(self.other_output_prefix)
-                    sys.stdout.write('In [{}]: '.format(content['execution_count']))
+                        print_formatted_text(FormattedText([
+                            ('#ffff00', self.other_output_prefix)]), end='')
+
+                    # Then In[3]
+                    def get_remote_prompt(i):
+                        return FormattedText([
+                            ('#999900', 'In ['),
+                            ('#ffff00', str(i)),
+                            ('#999900', ']: '),
+                        ])
+                    print_formatted_text(get_remote_prompt(content['execution_count']), end='')
+
+                    # And the code
                     sys.stdout.write(content['code'] + '\n')
 
                 elif msg_type == 'clear_output':
