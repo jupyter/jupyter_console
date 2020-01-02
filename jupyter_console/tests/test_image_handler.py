@@ -32,7 +32,7 @@ class ZMQTerminalInteractiveShellTestCase(unittest.TestCase):
         self.shell = NonCommunicatingShell()
         self.raw = b'dummy data'
         self.mime = 'image/png'
-        self.data = {self.mime: base64.encodestring(self.raw).decode('ascii')}
+        self.data = {self.mime: base64.encodebytes(self.raw).decode('ascii')}
 
     def test_call_pil_by_default(self):
         pil_called_with = []
