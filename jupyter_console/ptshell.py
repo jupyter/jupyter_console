@@ -6,20 +6,15 @@ import errno
 from getpass import getpass
 from io import BytesIO
 import os
+from queue import Empty
 import signal
 import subprocess
 import sys
 import time
 from warnings import warn
 
-try:
-    from queue import Empty  # Py 3
-except ImportError:
-    from Queue import Empty  # Py 2
-
 from zmq import ZMQError
 from IPython.core import page
-from IPython.utils.py3compat import cast_unicode_py2, input
 from ipython_genutils.tempdir import NamedFileInTemporaryDirectory
 from traitlets import (Bool, Integer, Float, Unicode, List, Dict, Enum,
                        Instance, Any)
@@ -356,7 +351,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             # Simple restricted interface for tests so we can find prompts with
             # pexpect. Multi-line input not supported.
             def prompt():
-                return cast_unicode_py2(input('In [%d]: ' % self.execution_count))
+                return input('In [%d]: ' % self.execution_count)
             self.prompt_for_code = prompt
             self.print_out_prompt = \
                 lambda: print('Out[%d]: ' % self.execution_count, end='')
@@ -406,7 +401,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         for _, _, cell in self.history_manager.get_tail(self.history_load_length,
                                                         include_latest=True):
             # Ignore blank lines and consecutive duplicates
-            cell = cast_unicode_py2(cell.rstrip())
+            cell = cell.rstrip()
             if cell and (cell != last_cell):
                 history.append_string(cell)
 
@@ -516,7 +511,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             # We can't set the buffer here, because it will be reset just after
             # this. Adding a callable to pre_run_callables does what we need
             # after the buffer is reset.
-            s = cast_unicode_py2(self.next_input)
+            s = self.next_input
 
             def set_doc():
                 self.pt_cli.app.buffer.document = Document(s)

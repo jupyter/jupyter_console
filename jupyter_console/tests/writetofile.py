@@ -19,14 +19,10 @@ If INPUT is '-', stdin is used.
 
 if __name__ == '__main__':
     import sys
-    from ipython_genutils.py3compat import PY3
     (inpath, outpath) = sys.argv[1:]
 
     if inpath == '-':
-        if PY3:
-            infile = sys.stdin.buffer
-        else:
-            infile = sys.stdin
+        infile = sys.stdin.buffer
     else:
         infile = open(inpath, 'rb')
 
