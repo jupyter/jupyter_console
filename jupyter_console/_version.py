@@ -5,6 +5,6 @@ the beta released i.e. 1, 2, 3 ...
 See PEP 440 https://www.python.org/dev/peps/pep-0440/
 """
 
-version_info = (6, 1, 0, 'dev')
+version_info = (6, 1, 0)
 
 __version__ = '.'.join(map(str, version_info[:3])) + ''.join(version_info[3:])
