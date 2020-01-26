@@ -728,7 +728,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         other than this one sharing the same kernel.
         """
     )
-    other_output_prefix = Unicode("[remote] ", config=True,
+    other_output_prefix = Unicode("Remote ", config=True,
         help="""Prefix to add to outputs coming from clients other than this one.
 
         Only relevant if include_other_output is True.
