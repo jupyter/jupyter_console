@@ -373,7 +373,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             def prompt():
                 prompt = 'In [%d]: ' % self.execution_count
                 raw = yield from async_input(prompt)
-                return cast_unicode_py2(raw)
+                return raw
             self.prompt_for_code = prompt
             self.print_out_prompt = \
                 lambda: print('Out[%d]: ' % self.execution_count, end='')
