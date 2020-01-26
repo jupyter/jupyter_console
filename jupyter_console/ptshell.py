@@ -342,6 +342,16 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         print_formatted_text(PygmentsTokens(tokens), end='',
                              style = self.pt_cli.app.style)
 
+    def get_remote_prompt_tokens(self):
+        return [
+            (Token.RemotePrompt, self.other_output_prefix),
+        ]
+
+    def print_remote_prompt(self):
+        tokens = self.get_remote_prompt_tokens() + self.get_prompt_tokens()
+        print_formatted_text(PygmentsTokens(tokens), end='',
+                             style = self.pt_cli.app.style)
+
     kernel_info = {}
 
     def init_kernel_info(self):
@@ -432,6 +442,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             Token.PromptNum: '#00ff00 bold',
             Token.OutPrompt: '#ff2200',
             Token.OutPromptNum: '#ff0000 bold',
+            Token.RemotePrompt: '#999900',
         }
         if self.highlighting_style:
             style_cls = get_style_by_name(self.highlighting_style)
@@ -837,19 +848,8 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                     sys.stdout.write('\n')
                     sys.stdout.flush()
 
-                    # With `[remote]` prefix
-                    if not self.from_here(sub_msg):
-                        print_formatted_text(FormattedText([
-                            ('#ffff00', self.other_output_prefix)]), end='')
-
-                    # Then In[3]
-                    def get_remote_prompt(i):
-                        return FormattedText([
-                            ('#999900', 'In ['),
-                            ('#ffff00', str(i)),
-                            ('#999900', ']: '),
-                        ])
-                    print_formatted_text(get_remote_prompt(content['execution_count']), end='')
+                    # With `Remote In [3]: `
+                    self.print_remote_prompt()
 
                     # And the code
                     sys.stdout.write(content['code'] + '\n')
