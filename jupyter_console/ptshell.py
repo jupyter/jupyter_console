@@ -115,7 +115,7 @@ class JupyterPTCompleter(Completer):
         )
         start_pos = content['cursor_start'] - document.cursor_position
         for m in content['matches']:
-            yield Completion(m, start_position=start_pos)
+            yield Completion(m, start_position=start_pos, display_meta=content["metadata"].get(m, ""))
 
 
 class ZMQTerminalInteractiveShell(SingletonConfigurable):
