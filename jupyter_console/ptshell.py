@@ -830,6 +830,12 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                         print()
                     print(text_repr)
 
+                    # Remote: add new prompt
+                    if not self.from_here(sub_msg):
+                        sys.stdout.write('\n')
+                        sys.stdout.flush()
+                        self.print_remote_prompt()
+
                 elif msg_type == 'display_data':
                     data = sub_msg["content"]["data"]
                     handled = self.handle_rich_data(data)
