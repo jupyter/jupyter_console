@@ -318,10 +318,12 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         self.history_manager = ZMQHistoryManager(client=self.client)
         self.configurables.append(self.history_manager)
 
-    def get_prompt_tokens(self):
+    def get_prompt_tokens(self, ec=None):
+        if ec is None:
+            ec = self.execution_count
         return [
             (Token.Prompt, 'In ['),
-            (Token.PromptNum, str(self.execution_count)),
+            (Token.PromptNum, str(ec)),
             (Token.Prompt, ']: '),
         ]
 
@@ -347,8 +349,8 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             (Token.RemotePrompt, self.other_output_prefix),
         ]
 
-    def print_remote_prompt(self):
-        tokens = self.get_remote_prompt_tokens() + self.get_prompt_tokens()
+    def print_remote_prompt(self, ec=None):
+        tokens = self.get_remote_prompt_tokens() + self.get_prompt_tokens(ec=ec)
         print_formatted_text(PygmentsTokens(tokens), end='',
                              style = self.pt_cli.app.style)
 
@@ -792,6 +794,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             if self.include_output(sub_msg):
                 if msg_type == 'status':
                     self._execution_state = sub_msg["content"]["execution_state"]
+
                 elif msg_type == 'stream':
                     if sub_msg["content"]["name"] == "stdout":
                         if self._pending_clearoutput:
@@ -849,13 +852,14 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                 # If execute input: print it
                 elif msg_type == 'execute_input':
                     content = sub_msg['content']
+                    ec = content.get('execution_count', self.execution_count - 1)
 
                     # New line
                     sys.stdout.write('\n')
                     sys.stdout.flush()
 
                     # With `Remote In [3]: `
-                    self.print_remote_prompt()
+                    self.print_remote_prompt(ec=ec)
 
                     # And the code
                     sys.stdout.write(content['code'] + '\n')
