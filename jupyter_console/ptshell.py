@@ -1,6 +1,7 @@
 """IPython terminal interface using prompt_toolkit in place of readline"""
 from __future__ import print_function
 
+import asyncio
 import base64
 import errno
 from getpass import getpass
@@ -24,6 +25,14 @@ from .completer import ZMQCompleter
 from .zmqhistory import ZMQHistoryManager
 from . import __version__
 
+# Discriminate version3 for asyncio
+from prompt_toolkit import __version__ as ptk_version
+PTK3 = ptk_version.startswith('3.')
+
+if not PTK3:
+    # use_ayncio_event_loop obsolete in PKT3
+    from prompt_toolkit.eventloop.defaults import use_asyncio_event_loop
+
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
@@ -40,7 +49,7 @@ from prompt_toolkit.layout.processors import (ConditionalProcessor,
 from prompt_toolkit.styles import merge_styles
 from prompt_toolkit.styles.pygments import (style_from_pygments_cls,
                                             style_from_pygments_dict)
-from prompt_toolkit.formatted_text import PygmentsTokens
+from prompt_toolkit.formatted_text import PygmentsTokens, FormattedText
 from prompt_toolkit.output import ColorDepth
 from prompt_toolkit.utils import suspend_to_background_supported
 
@@ -81,6 +90,16 @@ def ask_yes_no(prompt, default=None, interrupt=None):
                 raise
 
     return answers[ans]
+
+
+@asyncio.coroutine
+def async_input(prompt, loop=None):
+    """Simple async version of input using a the default executor"""
+    if loop is None:
+        loop = asyncio.get_event_loop()
+
+    raw = yield from loop.run_in_executor(None, input, prompt)
+    return raw
 
 
 def get_pygments_lexer(name):
@@ -299,10 +318,12 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         self.history_manager = ZMQHistoryManager(client=self.client)
         self.configurables.append(self.history_manager)
 
-    def get_prompt_tokens(self):
+    def get_prompt_tokens(self, ec=None):
+        if ec is None:
+            ec = self.execution_count
         return [
             (Token.Prompt, 'In ['),
-            (Token.PromptNum, str(self.execution_count)),
+            (Token.PromptNum, str(ec)),
             (Token.Prompt, ']: '),
         ]
 
@@ -320,6 +341,16 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
 
     def print_out_prompt(self):
         tokens = self.get_out_prompt_tokens()
+        print_formatted_text(PygmentsTokens(tokens), end='',
+                             style = self.pt_cli.app.style)
+
+    def get_remote_prompt_tokens(self):
+        return [
+            (Token.RemotePrompt, self.other_output_prefix),
+        ]
+
+    def print_remote_prompt(self, ec=None):
+        tokens = self.get_remote_prompt_tokens() + self.get_prompt_tokens(ec=ec)
         print_formatted_text(PygmentsTokens(tokens), end='',
                              style = self.pt_cli.app.style)
 
@@ -350,8 +381,11 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         if self.simple_prompt or ('JUPYTER_CONSOLE_TEST' in os.environ):
             # Simple restricted interface for tests so we can find prompts with
             # pexpect. Multi-line input not supported.
+            @asyncio.coroutine
             def prompt():
-                return input('In [%d]: ' % self.execution_count)
+                prompt = 'In [%d]: ' % self.execution_count
+                raw = yield from async_input(prompt)
+                return raw
             self.prompt_for_code = prompt
             self.print_out_prompt = \
                 lambda: print('Out[%d]: ' % self.execution_count, end='')
@@ -410,6 +444,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             Token.PromptNum: '#00ff00 bold',
             Token.OutPrompt: '#ff2200',
             Token.OutPromptNum: '#ff0000 bold',
+            Token.RemotePrompt: '#999900',
         }
         if self.highlighting_style:
             style_cls = get_style_by_name(self.highlighting_style)
@@ -444,6 +479,11 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             Condition(lambda: self.highlight_matching_brackets))
         ]
 
+        # Tell prompt_toolkit to use the asyncio event loop.
+        # Obsolete in prompt_toolkit.v3
+        if not PTK3:
+            use_asyncio_event_loop()
+
         self.pt_cli = PromptSession(
             message=(lambda: PygmentsTokens(self.get_prompt_tokens())),
             multiline=True,
@@ -460,9 +500,9 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             style=style,
             input_processors=input_processors,
             color_depth=(ColorDepth.TRUE_COLOR if self.true_color else None),
-
         )
 
+    @asyncio.coroutine
     def prompt_for_code(self):
         if self.next_input:
             default = self.next_input
@@ -470,11 +510,11 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         else:
             default = ''
 
-        with patch_stdout(raw=True):
-            text = self.pt_cli.prompt(
-                default=default,
-#                pre_run=self.pre_prompt,# reset_current_buffer=True,
-            )
+        if PTK3:
+            text = yield from self.pt_cli.prompt_async(default=default)
+        else:
+            text = yield from self.pt_cli.prompt(default=default, async_=True)
+
         return text
 
     def init_io(self):
@@ -523,12 +563,13 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                 set_doc()
             self.next_input = None
 
-    def interact(self, display_banner=None):
+    @asyncio.coroutine
+    def interact(self, loop=None, display_banner=None):
         while self.keep_running:
             print('\n', end='')
 
             try:
-                code = self.prompt_for_code()
+                code = yield from self.prompt_for_code()
             except EOFError:
                 if (not self.confirm_exit) or \
                         ask_yes_no('Do you really want to exit ([y]/n)?', 'y', 'n'):
@@ -540,11 +581,29 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
 
     def mainloop(self):
         self.keepkernel = not self.own_kernel
+        loop = asyncio.get_event_loop()
         # An extra layer of protection in case someone mashing Ctrl-C breaks
         # out of our internal code.
         while True:
             try:
-                self.interact()
+                tasks = [self.interact(loop=loop)]
+
+                if self.include_other_output:
+                    # only poll the iopub channel asynchronously if we
+                    # wish to include external content
+                    tasks.append(self.handle_external_iopub(loop=loop))
+
+                main_task = asyncio.wait(tasks, loop=loop, return_when=asyncio.FIRST_COMPLETED)
+                _, pending = loop.run_until_complete(main_task)
+
+                for task in pending:
+                    task.cancel()
+                try:
+                    loop.run_until_complete(asyncio.gather(*pending))
+                except asyncio.CancelledError:
+                    pass
+                loop.stop()
+                loop.close()
                 break
             except KeyboardInterrupt:
                 print("\nKeyboardInterrupt escaped interact()\n")
@@ -680,11 +739,9 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
     include_other_output = Bool(False, config=True,
         help="""Whether to include output from clients
         other than this one sharing the same kernel.
-
-        Outputs are not displayed until enter is pressed.
         """
     )
-    other_output_prefix = Unicode("[remote] ", config=True,
+    other_output_prefix = Unicode("Remote ", config=True,
         help="""Prefix to add to outputs coming from clients other than this one.
 
         Only relevant if include_other_output is True.
@@ -707,6 +764,16 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         else:
             return from_here
 
+    @asyncio.coroutine
+    def handle_external_iopub(self, loop=None):
+        while self.keep_running:
+            # we need to check for keep_running from time to time as
+            # we are blocking in an executor block which cannot be cancelled.
+            poll_result = yield from loop.run_in_executor(
+                None, self.client.iopub_channel.socket.poll, 500)
+            if(poll_result):
+                self.handle_iopub()
+
     def handle_iopub(self, msg_id=''):
         """Process messages on the IOPub channel
 
@@ -727,6 +794,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             if self.include_output(sub_msg):
                 if msg_type == 'status':
                     self._execution_state = sub_msg["content"]["execution_state"]
+
                 elif msg_type == 'stream':
                     if sub_msg["content"]["name"] == "stdout":
                         if self._pending_clearoutput:
@@ -765,6 +833,12 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                         print()
                     print(text_repr)
 
+                    # Remote: add new prompt
+                    if not self.from_here(sub_msg):
+                        sys.stdout.write('\n')
+                        sys.stdout.flush()
+                        self.print_remote_prompt()
+
                 elif msg_type == 'display_data':
                     data = sub_msg["content"]["data"]
                     handled = self.handle_rich_data(data)
@@ -775,11 +849,19 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                         if 'text/plain' in data:
                             print(data['text/plain'])
 
+                # If execute input: print it
                 elif msg_type == 'execute_input':
                     content = sub_msg['content']
-                    if not self.from_here(sub_msg):
-                        sys.stdout.write(self.other_output_prefix)
-                    sys.stdout.write('In [{}]: '.format(content['execution_count']))
+                    ec = content.get('execution_count', self.execution_count - 1)
+
+                    # New line
+                    sys.stdout.write('\n')
+                    sys.stdout.flush()
+
+                    # With `Remote In [3]: `
+                    self.print_remote_prompt(ec=ec)
+
+                    # And the code
                     sys.stdout.write(content['code'] + '\n')
 
                 elif msg_type == 'clear_output':
