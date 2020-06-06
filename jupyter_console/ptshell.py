@@ -900,12 +900,12 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             from PIL import Image, ImageShow
         except ImportError:
             return False
-        raw = base64.decodestring(data[mime].encode('ascii'))
+        raw = base64.decodebytes(data[mime].encode('ascii'))
         img = Image.open(BytesIO(raw))
         return ImageShow.show(img)
 
     def handle_image_stream(self, data, mime):
-        raw = base64.decodestring(data[mime].encode('ascii'))
+        raw = base64.decodebytes(data[mime].encode('ascii'))
         imageformat = self._imagemime[mime]
         fmt = dict(format=imageformat)
         args = [s.format(**fmt) for s in self.stream_image_handler]
@@ -917,7 +917,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         return (proc.returncode == 0)
 
     def handle_image_tempfile(self, data, mime):
-        raw = base64.decodestring(data[mime].encode('ascii'))
+        raw = base64.decodebytes(data[mime].encode('ascii'))
         imageformat = self._imagemime[mime]
         filename = 'tmp.{0}'.format(imageformat)
         with NamedFileInTemporaryDirectory(filename) as f, \
