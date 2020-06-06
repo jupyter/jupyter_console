@@ -96,6 +96,16 @@ class ZMQTerminalIPythonApp(JupyterApp, JupyterConsoleApp):
 
     force_interact = True
 
+    def __init__(self, *args, **kwargs):
+        from jupyter_client.kernelspec import KernelSpecManager
+        ksm = KernelSpecManager()
+        specs = ksm.get_all_specs().keys()
+        print()
+        print(kwargs.get('config'))
+        import prompt_toolkit.shortcuts
+        spec = prompt_toolkit.shortcuts.radiolist_dialog(values=[(s,s) for s in specs])
+        super().__init__(*args, **kwargs)
+
     def parse_command_line(self, argv=None):
         super(ZMQTerminalIPythonApp, self).parse_command_line(argv)
         self.build_kernel_argv(self.extra_args)
