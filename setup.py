@@ -16,7 +16,7 @@ name = 'jupyter_console'
 import sys
 
 
-if sys.version_info < (3, 5):
+if sys.version_info < (3, 6):
     pip_message = 'This may be due to an out of date pip. Make sure you have pip >= 9.0.1.'
     try:
         import pip
@@ -108,7 +108,7 @@ extras_require = setuptools_args['extras_require'] = {
 
 }
 
-setuptools_args['python_requires'] = '>=3.5'
+setuptools_args['python_requires'] = '>=3.6'
 
 
 setuptools_args['entry_points'] = {
