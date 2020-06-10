@@ -20,7 +20,7 @@ To see configuration options::
 
 To start the console with a particular kernel, ask for it by name::
 
-    jupyter console --kernel=julia-0.4
+    jupyter console --kernel=julia-1.4
 
 A list of available kernels can be seen with::
 
