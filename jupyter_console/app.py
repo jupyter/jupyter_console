@@ -42,9 +42,8 @@ jupyter console --existing # connect to an existing ipython session
 # copy flags from mixin:
 flags = dict(base_flags)
 # start with mixin frontend flags:
-frontend_flags = dict(app_flags)
 # update full dict with frontend flags:
-flags.update(frontend_flags)
+flags.update(app_flags)
 flags.update(boolean_flag(
     'simple-prompt', 'ZMQTerminalInteractiveShell.simple_prompt',
     "Force simple minimal prompt using `raw_input`",
@@ -53,15 +52,11 @@ flags.update(boolean_flag(
 
 # copy flags from mixin
 aliases = dict(base_aliases)
-# start with mixin frontend flags
-frontend_aliases = dict(app_aliases)
-# load updated frontend flags into full dict
-aliases.update(frontend_aliases)
 
-# get flags&aliases into sets, and remove a couple that
-# shouldn't be scrubbed from backend flags:
-frontend_aliases = set(frontend_aliases.keys())
-frontend_flags = set(frontend_flags.keys())
+aliases.update(app_aliases)
+
+frontend_aliases = set(app_aliases.keys())
+frontend_flags = set(app_flags.keys())
 
 
 #-----------------------------------------------------------------------------

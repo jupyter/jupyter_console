@@ -14,11 +14,22 @@ import sys
 import time
 from warnings import warn
 
+from typing import Dict as DictType, Any as AnyType
+
 from zmq import ZMQError
 from IPython.core import page
 from ipython_genutils.tempdir import NamedFileInTemporaryDirectory
-from traitlets import (Bool, Integer, Float, Unicode, List, Dict, Enum,
-                       Instance, Any)
+from traitlets import (
+    Bool,
+    Integer,
+    Float,
+    Unicode,
+    List,
+    Dict,
+    Enum,
+    Instance,
+    Any,
+)
 from traitlets.config import SingletonConfigurable
 
 from .completer import ZMQCompleter
@@ -225,8 +236,9 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         """
     )
 
-    callable_image_handler = Any(config=True, help=
-        """
+    callable_image_handler = Any(
+        config=True,
+        help="""
         Callable object called via 'callable' image handler with one
         argument, `data`, which is `msg["content"]["data"]` where
         `msg` is the message from iopub channel.  For example, you can
@@ -354,7 +366,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         print_formatted_text(PygmentsTokens(tokens), end='',
                              style = self.pt_cli.app.style)
 
-    kernel_info = {}
+    kernel_info: DictType[str, AnyType] = {}
 
     def init_kernel_info(self):
         """Wait for a kernel to be ready, and store kernel info"""

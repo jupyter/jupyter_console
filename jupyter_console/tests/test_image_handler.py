@@ -6,10 +6,7 @@ import sys
 import unittest
 import base64
 
-try:
-    from unittest.mock import patch
-except ImportError:
-    from mock import patch
+from unittest.mock import patch
 
 from jupyter_console.ptshell import ZMQTerminalInteractiveShell
 from ipython_genutils.tempdir import TemporaryDirectory
