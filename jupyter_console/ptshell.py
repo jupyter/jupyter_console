@@ -329,7 +329,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
 
     def get_continuation_tokens(self, width):
         return [
-            (Token.Prompt, (' ' * (width - 2)) + ': '),
+            (Token.Prompt, (" " * (width - 5)) + "...: "),
         ]
 
     def get_out_prompt_tokens(self):
