@@ -14,10 +14,7 @@
 from IPython.core.history import HistoryAccessorBase
 from traitlets import Dict, List
 
-try:
-    from queue import Empty  # Py 3
-except ImportError:
-    from Queue import Empty  # Py 2
+from queue import Empty  # Py 3
 
 class ZMQHistoryManager(HistoryAccessorBase):
     """History accessor and manager for ZMQ-based kernels"""
