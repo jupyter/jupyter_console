@@ -92,13 +92,12 @@ def ask_yes_no(prompt, default=None, interrupt=None):
     return answers[ans]
 
 
-@asyncio.coroutine
-def async_input(prompt, loop=None):
+async def async_input(prompt, loop=None):
     """Simple async version of input using a the default executor"""
     if loop is None:
         loop = asyncio.get_event_loop()
 
-    raw = yield from loop.run_in_executor(None, input, prompt)
+    raw = await loop.run_in_executor(None, input, prompt)
     return raw
 
 
@@ -381,10 +380,9 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         if self.simple_prompt or ('JUPYTER_CONSOLE_TEST' in os.environ):
             # Simple restricted interface for tests so we can find prompts with
             # pexpect. Multi-line input not supported.
-            @asyncio.coroutine
-            def prompt():
+            async def prompt():
                 prompt = 'In [%d]: ' % self.execution_count
-                raw = yield from async_input(prompt)
+                raw = await async_input(prompt)
                 return raw
             self.prompt_for_code = prompt
             self.print_out_prompt = \
@@ -502,8 +500,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             color_depth=(ColorDepth.TRUE_COLOR if self.true_color else None),
         )
 
-    @asyncio.coroutine
-    def prompt_for_code(self):
+    async def prompt_for_code(self):
         if self.next_input:
             default = self.next_input
             self.next_input = None
@@ -511,9 +508,9 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             default = ''
 
         if PTK3:
-            text = yield from self.pt_cli.prompt_async(default=default)
+            text = await self.pt_cli.prompt_async(default=default)
         else:
-            text = yield from self.pt_cli.prompt(default=default, async_=True)
+            text = await self.pt_cli.prompt(default=default, async_=True)
 
         return text
 
@@ -563,13 +560,12 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                 set_doc()
             self.next_input = None
 
-    @asyncio.coroutine
-    def interact(self, loop=None, display_banner=None):
+    async def interact(self, loop=None, display_banner=None):
         while self.keep_running:
             print('\n', end='')
 
             try:
-                code = yield from self.prompt_for_code()
+                code = await self.prompt_for_code()
             except EOFError:
                 if (not self.confirm_exit) or \
                         ask_yes_no('Do you really want to exit ([y]/n)?', 'y', 'n'):
@@ -764,12 +760,11 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         else:
             return from_here
 
-    @asyncio.coroutine
-    def handle_external_iopub(self, loop=None):
+    async def handle_external_iopub(self, loop=None):
         while self.keep_running:
             # we need to check for keep_running from time to time as
             # we are blocking in an executor block which cannot be cancelled.
-            poll_result = yield from loop.run_in_executor(
+            poll_result = await loop.run_in_executor(
                 None, self.client.iopub_channel.socket.poll, 500)
             if(poll_result):
                 self.handle_iopub()
