@@ -58,7 +58,8 @@ def start_console():
     args = ['-m', 'jupyter_console', '--colors=NoColor']
     cmd = sys.executable
     env = os.environ.copy()
-    env['JUPYTER_CONSOLE_TEST'] = '1'
+    env["JUPYTER_CONSOLE_TEST"] = "1"
+    env["PROMPT_TOOLKIT_NO_CPR"] = "1"
 
     try:
         p = pexpect.spawn(cmd, args=args, env=env)
