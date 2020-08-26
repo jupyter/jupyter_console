@@ -9,7 +9,9 @@ sudo: false
 before_install:
     - git clone --quiet --depth 1 https://github.com/minrk/travis-wheels travis-wheels
 install:
-    - pip install --upgrade setuptools pip
+    # Work around newer pip failing on python 3.3
+    - if [[ $TRAVIS_PYTHON_VERSION == '3.3' ]]; then pip install -I pip==10.*; else pip install --upgrade pip; fi
+    - pip install --upgrade setuptools
     - pip install -f travis-wheels/wheelhouse --pre -e . coveralls
     - python -m ipykernel.kernelspec --user
 script:
