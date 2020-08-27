@@ -51,7 +51,7 @@ Python {py} detected.
 import os
 from glob import glob
 
-from distutils.core import setup
+from setuptools import setup
 
 pjoin = os.path.join
 here = os.path.abspath(os.path.dirname(__file__))
