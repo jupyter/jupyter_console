@@ -33,6 +33,14 @@ A list of available kernels can be seen with::
     jupyter kernelspec list
 
 
+### Release build:
+
+```bash
+$ pip install pep517
+$ python -m pep517.build .
+```
+
+
 ## Resources
 - [Project Jupyter website](https://jupyter.org)
 - [Documentation for Jupyter Console](https://jupyter-console.readthedocs.io/en/latest/) [[PDF](https://media.readthedocs.org/pdf/jupyter-console/latest/jupyter-notebook.pdf)]
