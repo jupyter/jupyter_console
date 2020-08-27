@@ -7,8 +7,6 @@ input, there is no real readline support, among other limitations.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from __future__ import print_function
-
 import logging
 import signal
 import sys
@@ -17,6 +15,9 @@ from traitlets import (
     Dict, Any
 )
 from traitlets.config import catch_config_error, boolean_flag
+
+from jupyter_client.kernelspec import KernelSpecManager
+import prompt_toolkit.shortcuts
 
 from jupyter_core.application import JupyterApp, base_aliases, base_flags, NoStart
 from jupyter_client.consoleapp import (
@@ -97,13 +98,14 @@ class ZMQTerminalIPythonApp(JupyterApp, JupyterConsoleApp):
     force_interact = True
 
     def __init__(self, *args, **kwargs):
-        from jupyter_client.kernelspec import KernelSpecManager
         ksm = KernelSpecManager()
         specs = ksm.get_all_specs().keys()
-        print()
-        print(kwargs.get('config'))
-        import prompt_toolkit.shortcuts
-        spec = prompt_toolkit.shortcuts.radiolist_dialog(values=[(s,s) for s in specs])
+        print("CONFIG:", kwargs.get("config"))
+
+        spec = prompt_toolkit.shortcuts.radiolist_dialog(
+            title='select a kernel'
+            values=[(s, s) for s in specs]
+        ).run()
         super().__init__(*args, **kwargs)
 
     def parse_command_line(self, argv=None):
