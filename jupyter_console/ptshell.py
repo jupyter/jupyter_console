@@ -150,9 +150,26 @@ class JupyterPTCompleter(Completer):
             code=document.text,
             cursor_pos=document.cursor_position
         )
-        start_pos = content['cursor_start'] - document.cursor_position
-        for m in content['matches']:
-            yield Completion(m, start_position=start_pos, display_meta=content["metadata"].get(m, ""))
+        meta = content["metadata"]
+
+        if "_jupyter_types_experimental" in meta:
+            try:
+                new_meta = {}
+                for c, m in zip(
+                    content["matches"], meta["_jupyter_types_experimental"]
+                ):
+                    new_meta[c] = m["type"]
+                meta = new_meta
+            except:
+                pass
+
+        start_pos = content["cursor_start"] - document.cursor_position
+        for m in content["matches"]:
+            yield Completion(
+                m,
+                start_position=start_pos,
+                display_meta=meta.get(m, "?"),
+            )
 
 
 class ZMQTerminalInteractiveShell(SingletonConfigurable):
@@ -476,6 +493,10 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         @kb.add("c-z", filter=Condition(lambda: suspend_to_background_supported()))
         def _(event):
             event.cli.suspend_to_background()
+
+        @kb.add("c-o", filter=(has_focus(DEFAULT_BUFFER) & emacs_insert_mode))
+        def _(event):
+            event.current_buffer.insert_text("\n")
 
         # Pre-populate history from IPython's history database
         history = InMemoryHistory()
