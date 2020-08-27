@@ -4,6 +4,7 @@ include README.md
 
 # Documentation
 graft docs
+graft scripts
 exclude docs/\#*
 
 # Examples
@@ -20,3 +21,10 @@ global-exclude *.pyc
 global-exclude *.pyo
 global-exclude .git
 global-exclude .ipynb_checkpoints
+
+include *.md
+include *.yml
+include .bumpversion.cfg
+include mypy.ini
+include pytest.ini
+include .mailmap
