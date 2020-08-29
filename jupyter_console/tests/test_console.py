@@ -63,8 +63,8 @@ def start_console():
 
     try:
         p = pexpect.spawn(cmd, args=args, env=env)
-    except IOError:
-        raise SkipTest("Couldn't find command %s" % cmd)
+    except IOError as e:
+        raise SkipTest("Couldn't find command %s" % cmd) from e
     
     # timeout after one minute
     t = 60
