@@ -9,7 +9,6 @@ import sys
 import tempfile
 from subprocess import check_output
 
-from nose import SkipTest
 import pytest
 
 from traitlets.tests.utils import check_help_all_output
@@ -67,7 +66,7 @@ def start_console():
     try:
         p = pexpect.spawn(cmd, args=args, env=env)
     except IOError:
-        raise SkipTest("Couldn't find command %s" % cmd)
+        pytest.skip("Couldn't find command %s" % cmd)
     
     # timeout after one minute
     t = 60
