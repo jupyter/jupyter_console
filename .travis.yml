@@ -2,6 +2,9 @@ language: python
 python:
     - 3.7
     - 3.8
+arch:
+  - amd64
+  - ppc64le
 before_install:
     - git clone --quiet --depth 1 https://github.com/minrk/travis-wheels travis-wheels
 install:
