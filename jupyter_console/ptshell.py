@@ -56,7 +56,6 @@ from prompt_toolkit.filters import (
     is_done,
 )
 from prompt_toolkit.history import InMemoryHistory
-from prompt_toolkit.patch_stdout import patch_stdout
 from prompt_toolkit.shortcuts.prompt import PromptSession
 from prompt_toolkit.shortcuts import print_formatted_text, CompleteStyle
 from prompt_toolkit.key_binding import KeyBindings
@@ -68,7 +67,7 @@ from prompt_toolkit.layout.processors import (
 from prompt_toolkit.styles import merge_styles
 from prompt_toolkit.styles.pygments import (style_from_pygments_cls,
                                             style_from_pygments_dict)
-from prompt_toolkit.formatted_text import PygmentsTokens, FormattedText
+from prompt_toolkit.formatted_text import PygmentsTokens
 from prompt_toolkit.output import ColorDepth
 from prompt_toolkit.utils import suspend_to_background_supported
 
@@ -160,7 +159,7 @@ class JupyterPTCompleter(Completer):
                 ):
                     new_meta[c] = m["type"]
                 meta = new_meta
-            except:
+            except Exception:
                 pass
 
         start_pos = content["cursor_start"] - document.cursor_position
@@ -748,8 +747,8 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             content = msg["content"]
             status = content['status']
 
-            if status == 'aborted':
-                self.write('Aborted\n')
+            if status == "aborted":
+                self.shell.write("Aborted\n")
                 return
             elif status == 'ok':
                 # handle payloads
@@ -853,7 +852,6 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         while self.client.iopub_channel.msg_ready():
             sub_msg = self.client.iopub_channel.get_msg()
             msg_type = sub_msg['header']['msg_type']
-            parent = sub_msg["parent_header"]
 
             # Update execution_count in case it changed in another session
             if msg_type == "execute_input":
