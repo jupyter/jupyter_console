@@ -32,9 +32,10 @@ if sys.version_info < (3, 6):
 
 
     error = """
-Jupyter_Console 6.0+ supports Python 3.5 and above.
+Jupyter_Console 6.2+ supports Python 3.6 and above.
 When using Python 2.7, please install and older version of Jupyter Console
 Python 3.3 and 3.4 were supported up to Jupyter Console 5.x.
+Python 3.5 was supported up to Jupyter Console 6.1.0.
 
 Python {py} detected.
 {pip}
