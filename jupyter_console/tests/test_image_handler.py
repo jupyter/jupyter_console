@@ -11,7 +11,6 @@ from unittest.mock import patch
 from jupyter_console.ptshell import ZMQTerminalInteractiveShell
 from ipython_genutils.tempdir import TemporaryDirectory
 from ipython_genutils.testing.decorators import skip_without
-from ipython_genutils.ipstruct import Struct
 
 
 SCRIPT_PATH = os.path.join(
@@ -33,6 +32,7 @@ class ZMQTerminalInteractiveShellTestCase(unittest.TestCase):
 
     def test_call_pil_by_default(self):
         pil_called_with = []
+
         def pil_called(data, mime):
             pil_called_with.append(data)
 

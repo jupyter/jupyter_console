@@ -18,9 +18,9 @@ from ipython_genutils.testing import decorators as dec
 def test_console_starts():
     """test that `jupyter console` starts a terminal"""
     p, pexpect, t = start_console()
-    p.sendline('5')
-    idx = p.expect([r'Out\[\d+\]: 5', pexpect.EOF], timeout=t)
-    idx = p.expect([r'In \[\d+\]', pexpect.EOF], timeout=t)
+    p.sendline("5")
+    p.expect([r"Out\[\d+\]: 5", pexpect.EOF], timeout=t)
+    p.expect([r"In \[\d+\]", pexpect.EOF], timeout=t)
     stop_console(p, pexpect, t)
 
 def test_help_output():
@@ -68,7 +68,7 @@ def start_console():
     
     # timeout after one minute
     t = 60
-    idx = p.expect(r'In \[\d+\]', timeout=t)
+    p.expect(r"In \[\d+\]", timeout=t)
     return p, pexpect, t
 
 
