@@ -748,8 +748,8 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             content = msg["content"]
             status = content['status']
 
-            if status == 'aborted':
-                self.write('Aborted\n')
+            if status == "aborted":
+                self.shell.write("Aborted\n")
                 return
             elif status == 'ok':
                 # handle payloads
