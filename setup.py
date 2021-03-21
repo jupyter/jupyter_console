@@ -50,7 +50,6 @@ Python {py} detected.
 #-----------------------------------------------------------------------------
 
 import os
-from glob import glob
 
 from setuptools import setup
 
@@ -71,7 +70,6 @@ with open(pjoin(here, name, '_version.py')) as f:
 setup_args = dict(
     name            = name,
     version         = version_ns['__version__'],
-    scripts         = glob(pjoin('scripts', '*')),
     packages        = packages,
     description     = "Jupyter terminal console",
     long_description= "An IPython-like terminal frontend for Jupyter kernels in any language.",
@@ -89,38 +87,23 @@ setup_args = dict(
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
     ],
-)
-
-if 'develop' in sys.argv or any(a.startswith('bdist') for a in sys.argv):
-    import setuptools
-
-setuptools_args = {}
-install_requires = setuptools_args['install_requires'] = [
-    'jupyter_client',
-    'ipython',
-    'ipykernel', # bless IPython kernel for now
-    'prompt_toolkit>=2.0.0,<3.1.0,!=3.0.0,!=3.0.1',
-    'pygments',
-]
-
-extras_require = setuptools_args['extras_require'] = {
-    'test:sys_platform != "win32"': ['pexpect'],
-
-
-}
-
-setuptools_args['python_requires'] = '>=3.6'
-
-
-setuptools_args['entry_points'] = {
+    install_requires=[
+        'jupyter_client',
+        'ipython',
+        'ipykernel',  # bless IPython kernel for now
+        'prompt_toolkit>=2.0.0,<3.1.0,!=3.0.0,!=3.0.1',
+        'pygments',
+    ],
+    extras_require={
+        'test:sys_platform != "win32"': ['pexpect'],
+    },
+    python_requires='>=3.6',
+    entry_points={
         'console_scripts': [
             'jupyter-console = jupyter_console.app:main',
         ]
-}
-
-if 'setuptools' in sys.modules:
-    setup_args.update(setuptools_args)
-    setup_args.pop('scripts')
+    }
+)
 
 
 if __name__ == '__main__':
