@@ -1,16 +1,16 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+import base64
 import os
 import sys
+from tempfile import TemporaryDirectory
 import unittest
-import base64
-
 from unittest.mock import patch
 
+import pytest
+
 from jupyter_console.ptshell import ZMQTerminalInteractiveShell
-from ipython_genutils.tempdir import TemporaryDirectory
-from ipython_genutils.testing.decorators import skip_without
 
 
 SCRIPT_PATH = os.path.join(
@@ -48,8 +48,8 @@ class ZMQTerminalInteractiveShellTestCase(unittest.TestCase):
         shell.handle_image(None, None)  # arguments are dummy
         assert len(pil_called_with) == 1
 
-    @skip_without('PIL')
     def test_handle_image_PIL(self):
+        pytest.importorskip('PIL')
         from PIL import Image, ImageShow
 
         open_called_with = []
