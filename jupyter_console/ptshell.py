@@ -11,6 +11,7 @@ from queue import Empty
 import signal
 import subprocess
 import sys
+from tempfile import TemporaryDirectory
 import time
 from warnings import warn
 
@@ -18,7 +19,6 @@ from typing import Dict as DictType, Any as AnyType
 
 from zmq import ZMQError
 from IPython.core import page
-from ipython_genutils.tempdir import NamedFileInTemporaryDirectory
 from traitlets import (
     Bool,
     Integer,
@@ -975,24 +975,22 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         imageformat = self._imagemime[mime]
         fmt = dict(format=imageformat)
         args = [s.format(**fmt) for s in self.stream_image_handler]
-        with open(os.devnull, 'w') as devnull:
-            proc = subprocess.Popen(
-                args, stdin=subprocess.PIPE,
-                stdout=devnull, stderr=devnull)
+        with subprocess.Popen(args, stdin=subprocess.PIPE,
+                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) as proc:
             proc.communicate(raw)
-        return (proc.returncode == 0)
+            return (proc.returncode == 0)
 
     def handle_image_tempfile(self, data, mime):
         raw = base64.decodebytes(data[mime].encode('ascii'))
         imageformat = self._imagemime[mime]
         filename = 'tmp.{0}'.format(imageformat)
-        with NamedFileInTemporaryDirectory(filename) as f, \
-                open(os.devnull, 'w') as devnull:
-            f.write(raw)
-            f.flush()
-            fmt = dict(file=f.name, format=imageformat)
+        with TemporaryDirectory() as tempdir:
+            fullpath = os.path.join(tempdir, filename)
+            with open(fullpath, 'wb') as f:
+                f.write(raw)
+            fmt = dict(file=fullpath, format=imageformat)
             args = [s.format(**fmt) for s in self.tempfile_image_handler]
-            rc = subprocess.call(args, stdout=devnull, stderr=devnull)
+            rc = subprocess.call(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         return (rc == 0)
 
     def handle_image_callable(self, data, mime):
