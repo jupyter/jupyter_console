@@ -7,6 +7,16 @@
 from traitlets.config import Configurable
 from traitlets import Float
 
+import jupyter_client
+
+
+# jupyter_client 7.0+ has async channel methods that we expect to be sync here
+if jupyter_client._version.version_info[0] >= 7:
+    from jupyter_client.utils import run_sync
+else:
+    run_sync = lambda x: x
+
+
 class ZMQCompleter(Configurable):
     """Client-side completion machinery.
 
@@ -31,7 +41,7 @@ class ZMQCompleter(Configurable):
             cursor_pos=cursor_pos,
         )
     
-        msg = self.client.shell_channel.get_msg(timeout=self.timeout)
+        msg = run_sync(self.client.shell_channel.get_msg)(timeout=self.timeout)
         if msg['parent_header']['msg_id'] == msg_id:
             return msg['content']
 

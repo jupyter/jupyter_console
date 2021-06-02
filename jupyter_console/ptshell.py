@@ -76,7 +76,14 @@ from pygments.lexers import get_lexer_by_name
 from pygments.util import ClassNotFound
 from pygments.token import Token
 
-from jupyter_client.utils import run_sync
+import jupyter_client
+
+
+# jupyter_client 7.0+ has async channel methods that we expect to be sync here
+if jupyter_client._version.version_info[0] >= 7:
+    from jupyter_client.utils import run_sync
+else:
+    run_sync = lambda x: x
 
 
 def ask_yes_no(prompt, default=None, interrupt=None):
@@ -1034,6 +1041,6 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
 
             # only send stdin reply if there *was not* another request
             # or execution finished while we were reading.
-            if not (self.client.stdin_channel.msg_ready() or
-                    self.client.shell_channel.msg_ready()):
+            if not (run_sync(self.client.stdin_channel.msg_ready)() or
+                    run_sync(self.client.shell_channel.msg_ready)()):
                 self.client.input(raw_data)
