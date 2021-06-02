@@ -29,7 +29,6 @@ jobs:
         pip install pytest pytest-cov
         pip install .
         python -m ipykernel.kernelspec --user
-        pip install https://github.com/jupyter/jupyter_client/archive/master.zip
     - name: Test with pytest
       run: |
         pytest --cov jupyter_console
