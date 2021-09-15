@@ -11,7 +11,7 @@ import jupyter_client
 
 
 # jupyter_client 7.0+ has async channel methods that we expect to be sync here
-if jupyter_client._version.version_info[0] >= 7:
+if jupyter_client.version_info >= (7,):
     from jupyter_client.utils import run_sync
 else:
     run_sync = lambda x: x
