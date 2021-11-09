@@ -80,10 +80,13 @@ import jupyter_client
 
 
 # jupyter_client 7.0+ has async channel methods that we expect to be sync here
+# also, `block` was removed from `get_msg()`
 if jupyter_client._version.version_info[0] >= 7:
     from jupyter_client.utils import run_sync
+    JUPYTER_CLIENT_7 = True
 else:
     run_sync = lambda x: x
+    JUPYTER_CLIENT_7 = False
 
 
 def ask_yes_no(prompt, default=None, interrupt=None):
@@ -748,7 +751,10 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
     #-----------------
 
     def handle_execute_reply(self, msg_id, timeout=None):
-        msg = run_sync(self.client.shell_channel.get_msg)(block=False, timeout=timeout)
+        kwargs = {"timeout": timeout}
+        if not JUPYTER_CLIENT_7:
+            kwargs["block"] = False
+        msg = run_sync(self.client.shell_channel.get_msg)(**kwargs)
         if msg["parent_header"].get("msg_id", None) == msg_id:
 
             self.handle_iopub(msg_id)
@@ -787,7 +793,10 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         ## Get the is_complete response:
         msg = None
         try:
-            msg = run_sync(self.client.shell_channel.get_msg)(block=True, timeout=timeout)
+            kwargs = {"timeout": timeout}
+            if not JUPYTER_CLIENT_7:
+                kwargs["block"] = True
+            msg = run_sync(self.client.shell_channel.get_msg)(**kwargs)
         except Empty:
             warn('The kernel did not respond to an is_complete_request. '
                  'Setting `use_kernel_is_complete` to False.')
