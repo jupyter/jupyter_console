@@ -2,6 +2,22 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 6.4.2
+
+([Full Changelog](https://github.com/jupyter/jupyter_console/compare/v6.4.1...b3ff8fcd24fe22dfbd66518dc8e6a646f460a671))
+
+### Merged PRs
+
+- Don't pass loop to asyncio.wait() [#264](https://github.com/jupyter/jupyter_console/pull/264) ([@davidbrochart](https://github.com/davidbrochart))
+
+### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/jupyter/jupyter_console/graphs/contributors?from=2022-03-06&to=2022-03-06&type=c))
+
+[@davidbrochart](https://github.com/search?q=repo%3Ajupyter%2Fjupyter_console+involves%3Adavidbrochart+updated%3A2022-03-06..2022-03-06&type=Issues)
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 6.4.1
 
 ([Full Changelog](https://github.com/jupyter/jupyter_console/compare/6.4.0...2d0b6aec59bde7499995d929ded4d23d7bb585f6))
@@ -15,8 +31,6 @@
 ([GitHub contributors page for this release](https://github.com/jupyter/jupyter_console/graphs/contributors?from=2021-03-24&to=2022-03-06&type=c))
 
 [@davidbrochart](https://github.com/search?q=repo%3Ajupyter%2Fjupyter_console+involves%3Adavidbrochart+updated%3A2021-03-24..2022-03-06&type=Issues) | [@emuccino](https://github.com/search?q=repo%3Ajupyter%2Fjupyter_console+involves%3Aemuccino+updated%3A2021-03-24..2022-03-06&type=Issues)
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 6.4.0
 
