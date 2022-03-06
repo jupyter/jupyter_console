@@ -16,7 +16,7 @@
 
 ([GitHub contributors page for this release](https://github.com/jupyter/jupyter_console/graphs/contributors?from=2021-03-24&to=2022-03-06&type=c))
 
-[@davidbrochart](https://github.com/search?q=repo%3Ajupyter%2Fjupyter_console+involves%3Adavidbrochart+updated%3A2021-03-24..2022-03-06&type=Issues) | [@NeilGirdhar](https://github.com/search?q=repo%3Ajupyter%2Fjupyter_console+involves%3ANeilGirdhar+updated%3A2021-03-24..2022-03-06&type=Issues) | [@tinmarino](https://github.com/search?q=repo%3Ajupyter%2Fjupyter_console+involves%3Atinmarino+updated%3A2021-03-24..2022-03-06&type=Issues)
+[@davidbrochart](https://github.com/search?q=repo%3Ajupyter%2Fjupyter_console+involves%3Adavidbrochart+updated%3A2021-03-24..2022-03-06&type=Issues) | [@emuccino](https://github.com/search?q=repo%3Ajupyter%2Fjupyter_console+involves%3Aemuccino+updated%3A2021-03-24..2022-03-06&type=Issues)
 
 <!-- <END NEW CHANGELOG ENTRY> -->
 
