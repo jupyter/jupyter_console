@@ -9,6 +9,8 @@
 ### Merged PRs
 
 - Prepare for use with Jupyter Releaser [#261](https://github.com/jupyter/jupyter_console/pull/261) ([@davidbrochart](https://github.com/davidbrochart))
+- Prepare for jupyter_client 7.0 [#244](https://github.com/jupyter/jupyter_console/pull/244) ([@davidbrochart](https://github.com/davidbrochart))
+- Added programming language classifiers [#253](https://github.com/jupyter/jupyter_console/pull/253) ([@emuccino](https://github.com/emuccino))
 
 ### Contributors to this release
 
