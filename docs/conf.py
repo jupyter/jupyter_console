@@ -16,6 +16,7 @@
 import sys
 import os
 import shlex
+import shutil
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -320,3 +321,9 @@ if not on_rtd:  # only import and set the theme if we're building docs locally
     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # otherwise, readthedocs.org uses their theme by default, so no need to specify it
+
+
+def setup(app):
+    HERE = os.path.abspath(os.path.dirname(__file__))
+    dest = os.path.join(HERE, 'changelog.md')
+    shutil.copy(os.path.join(HERE, '..', 'CHANGELOG.md'), dest)

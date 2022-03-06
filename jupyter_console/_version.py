@@ -1,10 +1,15 @@
-""" For beta/alpha/rc releases, the version number for a beta is X.Y.ZbN
-**without dots between the last 'micro' number and b**. N is the number of
-the beta released i.e. 1, 2, 3 ...
+import re
+from typing import List, Union
 
-See PEP 440 https://www.python.org/dev/peps/pep-0440/
-"""
+__version__ = "6.4.0"
 
-version_info = (6, 4, 1, 'dev')
-
-__version__ = '.'.join(map(str, version_info[:3])) + ''.join(version_info[3:])
+# Build up version_info tuple for backwards compatibility
+pattern = r'(?P<major>\d+).(?P<minor>\d+).(?P<patch>\d+)(?P<rest>.*)'
+match = re.match(pattern, __version__)
+if match:
+    parts: List[Union[int, str]] = [int(match[part]) for part in ['major', 'minor', 'patch']]
+    if match['rest']:
+        parts.append(match['rest'])
+else:
+    parts = []
+version_info = tuple(parts)

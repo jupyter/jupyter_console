@@ -62,17 +62,13 @@ for d, _, _ in os.walk(pjoin(here, name)):
     if os.path.exists(pjoin(d, '__init__.py')):
         packages.append(d[len(here)+1:].replace(os.path.sep, '.'))
 
-version_ns = {}
-with open(pjoin(here, name, '_version.py')) as f:
-    exec(f.read(), {}, version_ns)
-
 
 setup_args = dict(
     name            = name,
-    version         = version_ns['__version__'],
     packages        = packages,
     description     = "Jupyter terminal console",
     long_description= "An IPython-like terminal frontend for Jupyter kernels in any language.",
+    long_description_content_type='text/markdown',
     author          = 'Jupyter Development Team',
     author_email    = 'jupyter@googlegroups.com',
     url             = 'https://jupyter.org',
