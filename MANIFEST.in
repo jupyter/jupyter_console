@@ -24,7 +24,6 @@ global-exclude .ipynb_checkpoints
 
 include *.md
 include *.yml
-include .bumpversion.cfg
 include mypy.ini
 include pytest.ini
 include .mailmap
