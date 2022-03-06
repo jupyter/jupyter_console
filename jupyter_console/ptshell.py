@@ -673,7 +673,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                     # wish to include external content
                     tasks.append(self.handle_external_iopub(loop=loop))
 
-                main_task = asyncio.wait(tasks, loop=loop, return_when=asyncio.FIRST_COMPLETED)
+                main_task = asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
                 _, pending = loop.run_until_complete(main_task)
 
                 for task in pending:
