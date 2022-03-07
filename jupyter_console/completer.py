@@ -7,14 +7,7 @@
 from traitlets.config import Configurable
 from traitlets import Float
 
-import jupyter_client
-
-
-# jupyter_client 7.0+ has async channel methods that we expect to be sync here
-if jupyter_client.version_info >= (7,):
-    from jupyter_client.utils import run_sync
-else:
-    run_sync = lambda x: x
+from jupyter_client.utils import run_sync
 
 
 class ZMQCompleter(Configurable):
