@@ -2,6 +2,22 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 6.4.3
+
+([Full Changelog](https://github.com/jupyter/jupyter_console/compare/v6.4.2...6e8f29e0a90804badda75c60c5eb50046544eb49))
+
+### Merged PRs
+
+- Require jupyter_client>=7.0.0 [#266](https://github.com/jupyter/jupyter_console/pull/266) ([@davidbrochart](https://github.com/davidbrochart))
+
+### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/jupyter/jupyter_console/graphs/contributors?from=2022-03-06&to=2022-03-07&type=c))
+
+[@davidbrochart](https://github.com/search?q=repo%3Ajupyter%2Fjupyter_console+involves%3Adavidbrochart+updated%3A2022-03-06..2022-03-07&type=Issues)
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 6.4.2
 
 ([Full Changelog](https://github.com/jupyter/jupyter_console/compare/v6.4.1...b3ff8fcd24fe22dfbd66518dc8e6a646f460a671))
@@ -15,8 +31,6 @@
 ([GitHub contributors page for this release](https://github.com/jupyter/jupyter_console/graphs/contributors?from=2022-03-06&to=2022-03-06&type=c))
 
 [@davidbrochart](https://github.com/search?q=repo%3Ajupyter%2Fjupyter_console+involves%3Adavidbrochart+updated%3A2022-03-06..2022-03-06&type=Issues)
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 6.4.1
 
