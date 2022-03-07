@@ -76,17 +76,7 @@ from pygments.lexers import get_lexer_by_name
 from pygments.util import ClassNotFound
 from pygments.token import Token
 
-import jupyter_client
-
-
-# jupyter_client 7.0+ has async channel methods that we expect to be sync here
-# also, `block` was removed from `get_msg()`
-if jupyter_client._version.version_info[0] >= 7:
-    from jupyter_client.utils import run_sync
-    JUPYTER_CLIENT_7 = True
-else:
-    run_sync = lambda x: x
-    JUPYTER_CLIENT_7 = False
+from jupyter_client.utils import run_sync
 
 
 def ask_yes_no(prompt, default=None, interrupt=None):
@@ -752,8 +742,6 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
 
     def handle_execute_reply(self, msg_id, timeout=None):
         kwargs = {"timeout": timeout}
-        if not JUPYTER_CLIENT_7:
-            kwargs["block"] = False
         msg = run_sync(self.client.shell_channel.get_msg)(**kwargs)
         if msg["parent_header"].get("msg_id", None) == msg_id:
 
@@ -794,8 +782,6 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         msg = None
         try:
             kwargs = {"timeout": timeout}
-            if not JUPYTER_CLIENT_7:
-                kwargs["block"] = True
             msg = run_sync(self.client.shell_channel.get_msg)(**kwargs)
         except Empty:
             warn('The kernel did not respond to an is_complete_request. '
@@ -852,11 +838,9 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
 
     async def handle_external_iopub(self, loop=None):
         while self.keep_running:
-            # we need to check for keep_running from time to time as
-            # we are blocking in an executor block which cannot be cancelled.
-            poll_result = await loop.run_in_executor(
-                None, self.client.iopub_channel.socket.poll, 500)
-            if(poll_result):
+            # we need to check for keep_running from time to time
+            poll_result = await self.client.iopub_channel.socket.poll(500)
+            if poll_result:
                 self.handle_iopub()
 
     def handle_iopub(self, msg_id=''):

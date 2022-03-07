@@ -88,7 +88,7 @@ setup_args = dict(
         'Programming Language :: Python :: 3.9',
     ],
     install_requires=[
-        'jupyter_client',
+        'jupyter_client>=7.0.0',
         'ipython',
         'ipykernel',  # bless IPython kernel for now
         'prompt_toolkit>=2.0.0,<3.1.0,!=3.0.0,!=3.0.1',
