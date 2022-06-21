@@ -656,7 +656,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         # out of our internal code.
         while True:
             try:
-                tasks = [self.interact(loop=loop)]
+                tasks = [loop.create_task(self.interact(loop=loop))]
 
                 if self.include_other_output:
                     # only poll the iopub channel asynchronously if we
