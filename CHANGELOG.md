@@ -8,7 +8,7 @@
 
 ### Merged PRs
 
-- Use loop.create_task with interact() [#270](https://github.com/jupyter/jupyter_console/pull/270) ([@encukou](https://github.com/encukou))
+- Use asyncio.create_task and asyncio.get_running_loop with interact(). Drop Python 3.6. [#270](https://github.com/jupyter/jupyter_console/pull/270) ([@encukou](https://github.com/encukou))
 
 ### Contributors to this release
 
