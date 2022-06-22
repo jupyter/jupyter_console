@@ -649,31 +649,31 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                 if code:
                     self.run_cell(code, store_history=True)
 
+    async def _main_task(self):
+        loop = asyncio.get_running_loop()
+        tasks = [asyncio.create_task(self.interact(loop=loop))]
+
+        if self.include_other_output:
+            # only poll the iopub channel asynchronously if we
+            # wish to include external content
+            tasks.append(asyncio.create_task(self.handle_external_iopub(loop=loop)))
+
+        _, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+
+        for task in pending:
+            task.cancel()
+        try:
+            await asyncio.gather(*pending)
+        except asyncio.CancelledError:
+            pass
+
     def mainloop(self):
         self.keepkernel = not self.own_kernel
-        loop = asyncio.get_event_loop()
         # An extra layer of protection in case someone mashing Ctrl-C breaks
         # out of our internal code.
         while True:
             try:
-                tasks = [self.interact(loop=loop)]
-
-                if self.include_other_output:
-                    # only poll the iopub channel asynchronously if we
-                    # wish to include external content
-                    tasks.append(self.handle_external_iopub(loop=loop))
-
-                main_task = asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
-                _, pending = loop.run_until_complete(main_task)
-
-                for task in pending:
-                    task.cancel()
-                try:
-                    loop.run_until_complete(asyncio.gather(*pending))
-                except asyncio.CancelledError:
-                    pass
-                loop.stop()
-                loop.close()
+                asyncio.run(self._main_task())
                 break
             except KeyboardInterrupt:
                 print("\nKeyboardInterrupt escaped interact()\n")
