@@ -16,7 +16,7 @@ name = 'jupyter_console'
 import sys
 
 
-if sys.version_info < (3, 6):
+if sys.version_info < (3, 7):
     pip_message = 'This may be due to an out of date pip. Make sure you have pip >= 9.0.1.'
     try:
         import pip
@@ -32,10 +32,11 @@ if sys.version_info < (3, 6):
 
 
     error = """
-Jupyter_Console 6.2+ supports Python 3.6 and above.
+Jupyter_Console 6.2+ supports Python 3.7 and above.
 When using Python 2.7, please install and older version of Jupyter Console
 Python 3.3 and 3.4 were supported up to Jupyter Console 5.x.
 Python 3.5 was supported up to Jupyter Console 6.1.0.
+Python 3.6 was supported up to Jupyter Console 6.4.3.
 
 Python {py} detected.
 {pip}
@@ -82,7 +83,6 @@ setup_args = dict(
         'License :: OSI Approved :: BSD License',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
@@ -97,7 +97,7 @@ setup_args = dict(
     extras_require={
         'test:sys_platform != "win32"': ['pexpect'],
     },
-    python_requires='>=3.6',
+    python_requires='>=3.7',
     entry_points={
         'console_scripts': [
             'jupyter-console = jupyter_console.app:main',

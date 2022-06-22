@@ -650,13 +650,13 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                     self.run_cell(code, store_history=True)
 
     async def _main_task(self):
-        loop = asyncio.get_event_loop()
-        tasks = [asyncio.ensure_future(self.interact(loop=loop))]
+        loop = asyncio.get_running_loop()
+        tasks = [asyncio.create_task(self.interact(loop=loop))]
 
         if self.include_other_output:
             # only poll the iopub channel asynchronously if we
             # wish to include external content
-            tasks.append(asyncio.ensure_future(self.handle_external_iopub(loop=loop)))
+            tasks.append(asyncio.create_task(self.handle_external_iopub(loop=loop)))
 
         _, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
 
