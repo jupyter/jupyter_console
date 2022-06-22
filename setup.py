@@ -9,47 +9,6 @@ from __future__ import print_function
 # the name of the project
 name = 'jupyter_console'
 
-#-----------------------------------------------------------------------------
-# Minimal Python version sanity check
-#-----------------------------------------------------------------------------
-
-import sys
-
-
-if sys.version_info < (3, 7):
-    pip_message = 'This may be due to an out of date pip. Make sure you have pip >= 9.0.1.'
-    try:
-        import pip
-        pip_version = tuple([int(x) for x in pip.__version__.split('.')[:3]])
-        if pip_version < (9, 0, 1) :
-            pip_message = 'Your pip version is out of date, please install pip >= 9.0.1. '\
-            'pip {} detected.'.format(pip.__version__)
-        else:
-            # pip is new enough - it must be something else
-            pip_message = ''
-    except Exception:
-        pass
-
-
-    error = """
-Jupyter_Console 6.2+ supports Python 3.7 and above.
-When using Python 2.7, please install and older version of Jupyter Console
-Python 3.3 and 3.4 were supported up to Jupyter Console 5.x.
-Python 3.5 was supported up to Jupyter Console 6.1.0.
-Python 3.6 was supported up to Jupyter Console 6.4.3.
-
-Python {py} detected.
-{pip}
-""".format(py=sys.version_info, pip=pip_message )
-
-    print(error, file=sys.stderr)
-    sys.exit(1)
-
-
-#-----------------------------------------------------------------------------
-# get on with it
-#-----------------------------------------------------------------------------
-
 import os
 
 from setuptools import setup
