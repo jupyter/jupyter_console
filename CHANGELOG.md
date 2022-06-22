@@ -2,6 +2,22 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 6.4.4
+
+([Full Changelog](https://github.com/jupyter/jupyter_console/compare/v6.4.3...18cb350dc05c903d541f30de18fcf53943ec0e3f))
+
+### Merged PRs
+
+- Use loop.create_task with interact() [#270](https://github.com/jupyter/jupyter_console/pull/270) ([@encukou](https://github.com/encukou))
+
+### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/jupyter/jupyter_console/graphs/contributors?from=2022-03-07&to=2022-06-22&type=c))
+
+[@davidbrochart](https://github.com/search?q=repo%3Ajupyter%2Fjupyter_console+involves%3Adavidbrochart+updated%3A2022-03-07..2022-06-22&type=Issues) | [@encukou](https://github.com/search?q=repo%3Ajupyter%2Fjupyter_console+involves%3Aencukou+updated%3A2022-03-07..2022-06-22&type=Issues)
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 6.4.3
 
 ([Full Changelog](https://github.com/jupyter/jupyter_console/compare/v6.4.2...6e8f29e0a90804badda75c60c5eb50046544eb49))
@@ -15,8 +31,6 @@
 ([GitHub contributors page for this release](https://github.com/jupyter/jupyter_console/graphs/contributors?from=2022-03-06&to=2022-03-07&type=c))
 
 [@davidbrochart](https://github.com/search?q=repo%3Ajupyter%2Fjupyter_console+involves%3Adavidbrochart+updated%3A2022-03-06..2022-03-07&type=Issues)
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 6.4.2
 
