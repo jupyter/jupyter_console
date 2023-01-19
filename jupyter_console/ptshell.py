@@ -870,6 +870,8 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                             print("\r", end="")
                             self._pending_clearoutput = False
                         print_formatted_text(sub_msg["content"]["text"], end="")
+                        if not self.from_here(sub_msg):
+                            print_formatted_text()
                         sys.stdout.flush()
                     elif sub_msg["content"]["name"] == "stderr":
                         if self._pending_clearoutput:
@@ -911,6 +913,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                     if not self.from_here(sub_msg):
                         # Because this occurs after the execute_input, we need to make sure our next prompt looks correct again
                         self.execution_count += 1
+                        print_formatted_text()
                         sys.stdout.flush()
 
                 elif msg_type == 'display_data':
