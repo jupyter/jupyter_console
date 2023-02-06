@@ -52,7 +52,7 @@ setup_args = dict(
         'jupyter_client>=7.0.0',
         'ipython',
         'ipykernel>=6.14',  # bless IPython kernel for now
-        'prompt_toolkit>=2.0.0,<3.1.0,!=3.0.0,!=3.0.1',
+        'prompt_toolkit>=3.0.30',
         'pygments',
         'pyzmq>=17',
         'traitlets>=5.4'

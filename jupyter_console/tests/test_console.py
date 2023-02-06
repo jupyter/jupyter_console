@@ -14,7 +14,10 @@ import pytest
 from traitlets.tests.utils import check_help_all_output
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="skip on windows")
+should_skip = sys.platform == "win32" or sys.version_info < (3,8)
+
+
+@pytest.mark.skipif(should_skip, reason="not supported")
 def test_console_starts():
     """test that `jupyter console` starts a terminal"""
     p, pexpect, t = start_console()
@@ -28,6 +31,7 @@ def test_help_output():
     check_help_all_output('jupyter_console')
 
 
+@pytest.mark.skipif(should_skip, reason="not supported")
 def test_display_text():
     "Ensure display protocol plain/text key is supported"
     # equivalent of:
