@@ -64,5 +64,5 @@ jobs:
           dependency_type: minimum
       - name: Run the unit tests
         run: |
-          pip install pytest
+          pip install ".[test]"
           pytest || pytest --lf
