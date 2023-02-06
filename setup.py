@@ -45,11 +45,13 @@ setup_args = dict(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
     ],
     install_requires=[
         'jupyter_client>=7.0.0',
         'ipython',
-        'ipykernel',  # bless IPython kernel for now
+        'ipykernel>=6.14',  # bless IPython kernel for now
         'prompt_toolkit>=2.0.0,<3.1.0,!=3.0.0,!=3.0.1',
         'pygments',
     ],
