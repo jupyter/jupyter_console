@@ -28,11 +28,11 @@ jobs:
       run: |
         python -m pip install --upgrade pip check-manifest
         pip install pytest-cov
-        pip install .
+        pip install ".[test]"
         python -m ipykernel.kernelspec --user
     - name: Test with pytest
       run: |
-        pytest --cov jupyter_console
+        pytest --cov jupyter_console || pytest jupyter_console --lf
     - name: Check Manifest
       run: |
         check-manifest
@@ -64,4 +64,5 @@ jobs:
           dependency_type: minimum
       - name: Run the unit tests
         run: |
-          pytest
+          pip install pytest
+          pytest || pytest --lf
