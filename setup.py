@@ -54,6 +54,8 @@ setup_args = dict(
         'ipykernel>=6.14',  # bless IPython kernel for now
         'prompt_toolkit>=2.0.0,<3.1.0,!=3.0.0,!=3.0.1',
         'pygments',
+        'pyzmq>=17',
+        'traitlets>5.4'
     ],
     extras_require={
         'test': ['pexpect', 'pytest'],
