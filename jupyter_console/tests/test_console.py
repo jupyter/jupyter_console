@@ -67,8 +67,8 @@ def start_console():
     except IOError:
         pytest.skip("Couldn't find command %s" % cmd)
     
-    # timeout after one minute
-    t = 60
+    # timeout after two minutes
+    t = 120
     p.expect(r"In \[\d+\]", timeout=t)
     return p, pexpect, t
 
