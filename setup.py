@@ -56,7 +56,7 @@ setup_args = dict(
         'pygments',
     ],
     extras_require={
-        'test:sys_platform != "win32"': ['pexpect'],
+        'test': ['pexpect', 'pytest'],
     },
     python_requires='>=3.7',
     entry_points={

@@ -27,7 +27,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip check-manifest
-        pip install pytest pytest-cov
+        pip install pytest-cov
         pip install .
         python -m ipykernel.kernelspec --user
     - name: Test with pytest
