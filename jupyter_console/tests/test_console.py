@@ -14,7 +14,6 @@ import pytest
 from traitlets.tests.utils import check_help_all_output
 
 
-@pytest.mark.xfail
 @pytest.mark.skipif(sys.platform == "win32", reason="skip on windows")
 def test_console_starts():
     """test that `jupyter console` starts a terminal"""
@@ -28,7 +27,7 @@ def test_help_output():
     """jupyter console --help-all works"""
     check_help_all_output('jupyter_console')
 
-@pytest.mark.xfail
+
 def test_display_text():
     "Ensure display protocol plain/text key is supported"
     # equivalent of:

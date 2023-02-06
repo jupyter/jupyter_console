@@ -76,8 +76,6 @@ from pygments.lexers import get_lexer_by_name
 from pygments.util import ClassNotFound
 from pygments.token import Token
 
-from jupyter_client.utils import run_sync
-
 
 def ask_yes_no(prompt, default=None, interrupt=None):
     """Asks a question and returns a boolean (y/n) answer.
@@ -707,8 +705,8 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             return
 
         # flush stale replies, which could have been ignored, due to missed heartbeats
-        while run_sync(self.client.shell_channel.msg_ready)():
-            run_sync(self.client.shell_channel.get_msg)()
+        while self.client.shell_channel.msg_ready():
+            self.client.shell_channel.get_msg()
         # execute takes 'hidden', which is the inverse of store_hist
         msg_id = self.client.execute(cell, not store_history)
 
@@ -742,7 +740,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
 
     def handle_execute_reply(self, msg_id, timeout=None):
         kwargs = {"timeout": timeout}
-        msg = run_sync(self.client.shell_channel.get_msg)(**kwargs)
+        msg = self.client.shell_channel.get_msg(**kwargs)
         if msg["parent_header"].get("msg_id", None) == msg_id:
 
             self.handle_iopub(msg_id)
@@ -782,7 +780,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         msg = None
         try:
             kwargs = {"timeout": timeout}
-            msg = run_sync(self.client.shell_channel.get_msg)(**kwargs)
+            msg = self.client.shell_channel.get_msg(**kwargs)
         except Empty:
             warn('The kernel did not respond to an is_complete_request. '
                  'Setting `use_kernel_is_complete` to False.')
@@ -851,8 +849,8 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
 
            It only displays output that is caused by this session.
         """
-        while run_sync(self.client.iopub_channel.msg_ready)():
-            sub_msg = run_sync(self.client.iopub_channel.get_msg)()
+        while self.client.iopub_channel.msg_ready():
+            sub_msg = self.client.iopub_channel.get_msg()
             msg_type = sub_msg['header']['msg_type']
 
             # Update execution_count in case it changed in another session
@@ -1005,7 +1003,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
     def handle_input_request(self, msg_id, timeout=0.1):
         """ Method to capture raw_input
         """
-        req = run_sync(self.client.stdin_channel.get_msg)(timeout=timeout)
+        req = self.client.stdin_channel.get_msg(timeout=timeout)
         # in case any iopub came while we were waiting:
         self.handle_iopub(msg_id)
         if msg_id == req["parent_header"].get("msg_id"):
@@ -1034,6 +1032,6 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
 
             # only send stdin reply if there *was not* another request
             # or execution finished while we were reading.
-            if not (run_sync(self.client.stdin_channel.msg_ready)() or
-                    run_sync(self.client.shell_channel.msg_ready)()):
+            if not (self.client.stdin_channel.msg_ready() or
+                    self.client.shell_channel.msg_ready()):
                 self.client.input(raw_data)
