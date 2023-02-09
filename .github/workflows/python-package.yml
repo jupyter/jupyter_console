@@ -9,6 +9,10 @@ on:
   pull_request:
     branches: [ main ]
 
+defaults:
+  run:
+    shell: bash -eux {0}
+
 jobs:
   build:
 
