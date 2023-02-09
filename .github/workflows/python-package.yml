@@ -37,9 +37,11 @@ jobs:
     - name: Test with pytest
       run: |
         pytest --cov jupyter_console || pytest jupyter_console --lf
-    - name: Check Manifest
+    - name: Linting
       run: |
         check-manifest
+        pip install mypy
+        mypy .
 
   check_release:
     runs-on: ubuntu-latest

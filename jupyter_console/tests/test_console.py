@@ -21,6 +21,7 @@ should_skip = sys.platform == "win32" or sys.version_info < (3,8)
 def test_console_starts():
     """test that `jupyter console` starts a terminal"""
     p, pexpect, t = start_console()
+    import pdb; pdb.set_trace()
     p.sendline("5")
     p.expect([r"Out\[\d+\]: 5", pexpect.EOF], timeout=t)
     p.expect([r"In \[\d+\]", pexpect.EOF], timeout=t)
