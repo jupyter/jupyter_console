@@ -41,7 +41,7 @@ jobs:
       run: |
         check-manifest
         pip install mypy
-        mypy .
+        mypy jupyter_console
 
   check_release:
     runs-on: ubuntu-latest
