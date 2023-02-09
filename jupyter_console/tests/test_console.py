@@ -14,8 +14,10 @@ import pytest
 from traitlets.tests.utils import check_help_all_output
 
 
-@pytest.mark.xfail
-@pytest.mark.skipif(sys.platform == "win32", reason="skip on windows")
+should_skip = sys.platform == "win32" or sys.version_info < (3,8) or sys.version_info[:2] == (3, 10)
+
+
+@pytest.mark.skipif(should_skip, reason="not supported")
 def test_console_starts():
     """test that `jupyter console` starts a terminal"""
     p, pexpect, t = start_console()
@@ -28,7 +30,8 @@ def test_help_output():
     """jupyter console --help-all works"""
     check_help_all_output('jupyter_console')
 
-@pytest.mark.xfail
+
+@pytest.mark.skipif(should_skip, reason="not supported")
 def test_display_text():
     "Ensure display protocol plain/text key is supported"
     # equivalent of:
@@ -68,8 +71,8 @@ def start_console():
     except IOError:
         pytest.skip("Couldn't find command %s" % cmd)
     
-    # timeout after one minute
-    t = 60
+    # timeout after two minutes
+    t = 120
     p.expect(r"In \[\d+\]", timeout=t)
     return p, pexpect, t
 

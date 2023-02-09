@@ -63,7 +63,7 @@ frontend_flags = set(app_flags.keys())
 #-----------------------------------------------------------------------------
 
 
-class ZMQTerminalIPythonApp(JupyterApp, JupyterConsoleApp):
+class ZMQTerminalIPythonApp(JupyterApp, JupyterConsoleApp):  # type:ignore[misc]
     name = "jupyter-console"
     version = __version__
     """Start a terminal frontend to the IPython zmq kernel."""
@@ -85,9 +85,9 @@ class ZMQTerminalIPythonApp(JupyterApp, JupyterConsoleApp):
     """
     examples = _examples
 
-    classes = [ZMQTerminalInteractiveShell] + JupyterConsoleApp.classes
-    flags = Dict(flags)
-    aliases = Dict(aliases)
+    classes = [ZMQTerminalInteractiveShell] + JupyterConsoleApp.classes  # type:ignore[operator]
+    flags = Dict(flags)  # type:ignore[assignment]
+    aliases = Dict(aliases)  # type:ignore[assignment]
     frontend_aliases = Any(frontend_aliases)
     frontend_flags = Any(frontend_flags)
 

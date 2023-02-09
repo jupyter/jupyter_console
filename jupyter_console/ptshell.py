@@ -13,6 +13,7 @@ import subprocess
 import sys
 from tempfile import TemporaryDirectory
 import time
+import typing as t
 from warnings import warn
 
 from typing import Dict as DictType, Any as AnyType
@@ -30,6 +31,7 @@ from traitlets import (
     Instance,
     Any,
 )
+import inspect
 from traitlets.config import SingletonConfigurable
 
 from .completer import ZMQCompleter
@@ -76,7 +78,29 @@ from pygments.lexers import get_lexer_by_name
 from pygments.util import ClassNotFound
 from pygments.token import Token
 
-from jupyter_client.utils import run_sync
+from jupyter_core.utils import run_sync as _run_sync
+
+
+T = t.TypeVar("T")
+
+
+def run_sync(coro: t.Callable[..., t.Union[T, t.Awaitable[T]]]) -> t.Callable[..., T]:
+    """Wraps coroutine in a function that blocks until it has executed.
+
+    Parameters
+    ----------
+    coro : coroutine-function
+        The coroutine-function to be executed.
+
+    Returns
+    -------
+    result :
+        Whatever the coroutine-function returns.
+    """
+    if not inspect.iscoroutinefunction(coro):
+        return t.cast(t.Callable[..., T], coro)
+    return _run_sync(coro)
+
 
 
 def ask_yes_no(prompt, default=None, interrupt=None):
@@ -316,7 +340,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         ),
         default_value="multicolumn",
     ).tag(config=True)
-    
+
     prompt_includes_vi_mode = Bool(True,
         help="Display the current vi mode (when using vi editing mode)."
     ).tag(config=True)
@@ -374,7 +398,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                 and self.prompt_includes_vi_mode):
             return '['+str(self.pt_cli.app.vi_state.input_mode)[3:6]+'] '
         return ''
-    
+
     def get_prompt_tokens(self, ec=None):
         if ec is None:
             ec = self.execution_count

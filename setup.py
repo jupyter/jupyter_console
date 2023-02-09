@@ -45,16 +45,21 @@ setup_args = dict(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
     ],
     install_requires=[
         'jupyter_client>=7.0.0',
+        'jupyter_core>=4.12,!=5.0.*',
         'ipython',
-        'ipykernel',  # bless IPython kernel for now
-        'prompt_toolkit>=2.0.0,<3.1.0,!=3.0.0,!=3.0.1',
+        'ipykernel>=6.14',  # bless IPython kernel for now
+        'prompt_toolkit>=3.0.30',
         'pygments',
+        'pyzmq>=17',
+        'traitlets>=5.4'
     ],
     extras_require={
-        'test:sys_platform != "win32"': ['pexpect'],
+        'test': ['pexpect', 'pytest'],
     },
     python_requires='>=3.7',
     entry_points={
