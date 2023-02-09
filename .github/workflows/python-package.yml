@@ -37,11 +37,17 @@ jobs:
     - name: Test with pytest
       run: |
         pytest --cov jupyter_console || pytest jupyter_console --lf
-    - name: Linting
-      run: |
-        check-manifest
-        pip install mypy
-        mypy jupyter_console
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+     - uses: actions/checkout@v2
+     - uses: actions/setup-python@v2
+     - name: Linting
+       run: |
+         pip install check-manifest mypy
+         check-manifest
+         mypy jupyter_console
 
   check_release:
     runs-on: ubuntu-latest

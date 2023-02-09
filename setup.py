@@ -50,6 +50,7 @@ setup_args = dict(
     ],
     install_requires=[
         'jupyter_client>=7.0.0',
+        'jupyter_core>=4.12,!=5.0.*',
         'ipython',
         'ipykernel>=6.14',  # bless IPython kernel for now
         'prompt_toolkit>=3.0.30',
