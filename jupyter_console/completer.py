@@ -7,7 +7,7 @@
 from traitlets.config import Configurable
 from traitlets import Float
 
-from jupyter_client.utils import run_sync
+from jupyter_console.utils import run_sync
 
 
 class ZMQCompleter(Configurable):
