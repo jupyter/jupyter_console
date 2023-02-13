@@ -2,6 +2,22 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 6.5.1
+
+([Full Changelog](https://github.com/jupyter/jupyter_console/compare/v6.5.0...25fe1d530cefe22596fc2aa9694cdcded14c0af3))
+
+### Bugs fixed
+
+- Fix completion handling [#278](https://github.com/jupyter/jupyter_console/pull/278) ([@blink1073](https://github.com/blink1073))
+
+### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/jupyter/jupyter_console/graphs/contributors?from=2023-02-09&to=2023-02-13&type=c))
+
+[@blink1073](https://github.com/search?q=repo%3Ajupyter%2Fjupyter_console+involves%3Ablink1073+updated%3A2023-02-09..2023-02-13&type=Issues)
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 6.5.0
 
 ([Full Changelog](https://github.com/jupyter/jupyter_console/compare/v6.4.4...7bcb1c61c709d033d5b24ecaea3cc6161ff69f5a))
@@ -15,8 +31,6 @@
 ([GitHub contributors page for this release](https://github.com/jupyter/jupyter_console/graphs/contributors?from=2022-06-22&to=2023-02-09&type=c))
 
 [@blink1073](https://github.com/search?q=repo%3Ajupyter%2Fjupyter_console+involves%3Ablink1073+updated%3A2022-06-22..2023-02-09&type=Issues)
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 6.4.4
 
