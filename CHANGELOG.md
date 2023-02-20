@@ -2,6 +2,24 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 6.6.0
+
+([Full Changelog](https://github.com/jupyter/jupyter_console/compare/v6.5.1...7a6bbfecac9c34e9a6b26eae6c018cee7622b403))
+
+### Maintenance and upkeep improvements
+
+- Switch to hatch backend [#281](https://github.com/jupyter/jupyter_console/pull/281) ([@blink1073](https://github.com/blink1073))
+- Add flaky [#280](https://github.com/jupyter/jupyter_console/pull/280) ([@blink1073](https://github.com/blink1073))
+- Clean up license [#279](https://github.com/jupyter/jupyter_console/pull/279) ([@dcsaba89](https://github.com/dcsaba89))
+
+### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/jupyter/jupyter_console/graphs/contributors?from=2023-02-13&to=2023-02-20&type=c))
+
+[@blink1073](https://github.com/search?q=repo%3Ajupyter%2Fjupyter_console+involves%3Ablink1073+updated%3A2023-02-13..2023-02-20&type=Issues) | [@dcsaba89](https://github.com/search?q=repo%3Ajupyter%2Fjupyter_console+involves%3Adcsaba89+updated%3A2023-02-13..2023-02-20&type=Issues)
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 6.5.1
 
 ([Full Changelog](https://github.com/jupyter/jupyter_console/compare/v6.5.0...25fe1d530cefe22596fc2aa9694cdcded14c0af3))
@@ -15,8 +33,6 @@
 ([GitHub contributors page for this release](https://github.com/jupyter/jupyter_console/graphs/contributors?from=2023-02-09&to=2023-02-13&type=c))
 
 [@blink1073](https://github.com/search?q=repo%3Ajupyter%2Fjupyter_console+involves%3Ablink1073+updated%3A2023-02-09..2023-02-13&type=Issues)
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 6.5.0
 
