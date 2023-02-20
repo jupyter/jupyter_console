@@ -7,7 +7,7 @@ name = "jupyter-console"
 dynamic = ["version"]
 description = "Jupyter terminal console"
 readme = "README.md"
-license = "BSD"
+license = { file= "LICENSE" }
 requires-python = ">=3.7"
 authors = [
     { name = "Jupyter Development Team", email = "jupyter@googlegroups.com" },
