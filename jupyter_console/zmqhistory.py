@@ -1,20 +1,21 @@
 """ ZMQ Kernel History accessor and manager. """
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #  Copyright (C) 2010-2011 The IPython Development Team.
 #
 #  Distributed under the terms of the BSD License.
 #
-#  The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+#  The full license is in the file LICENSE, distributed with this software.
+# -----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Imports
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 from IPython.core.history import HistoryAccessorBase
 from traitlets import Dict, List
 
 from queue import Empty  # Py 3
+
 
 class ZMQHistoryManager(HistoryAccessorBase):
     """History accessor and manager for ZMQ-based kernels"""
@@ -44,7 +45,7 @@ class ZMQHistoryManager(HistoryAccessorBase):
         """
         history = []
         if hasattr(self.client, "history"):
-            ## In tests, KernelClient may not have a history method
+            # In tests, KernelClient may not have a history method
             msg_id = self.client.history(raw=raw, output=output,
                                          hist_access_type=hist_access_type,
                                          **kwargs)
@@ -69,7 +70,7 @@ class ZMQHistoryManager(HistoryAccessorBase):
                                   raw=raw, search_raw=search_raw, 
                                   output=output, n=n, unique=unique)
 
-    def get_range(self, session, start=1, stop=None, raw=True,output=False):
+    def get_range(self, session, start=1, stop=None, raw=True, output=False):
         return self._load_history(hist_access_type='range', raw=raw, 
                                   output=output, start=start, stop=stop,
                                   session=session)
@@ -89,4 +90,3 @@ class ZMQHistoryManager(HistoryAccessorBase):
         Nothing to do for ZMQ-based histories.
         """
         pass
-
