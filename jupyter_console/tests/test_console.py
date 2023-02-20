@@ -15,7 +15,7 @@ import pytest
 from traitlets.tests.utils import check_help_all_output
 
 
-should_skip = sys.platform == "win32" or sys.version_info < (3,8) or sys.version_info[:2] == (3, 10)
+should_skip = sys.platform == "win32" or sys.version_info < (3,8) or sys.version_info[:2] == (3, 10)  # noqa
 
 
 @flaky

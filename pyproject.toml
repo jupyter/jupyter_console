@@ -1,23 +1,75 @@
 [build-system]
-requires = ["setuptools>=40.8.0", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling>=1.5"]
+build-backend = "hatchling.build"
+
+[project]
+name = "jupyter-console"
+dynamic = ["version"]
+description = "Jupyter terminal console"
+readme = "README.md"
+license = "BSD"
+requires-python = ">=3.7"
+authors = [
+    { name = "Jupyter Development Team", email = "jupyter@googlegroups.com" },
+]
+keywords = [
+    "Interactive",
+    "Interpreter",
+    "Shell",
+    "Web",
+]
+classifiers = [
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+dependencies = [
+    "ipykernel>=6.14",
+    "ipython",
+    "jupyter_client>=7.0.0",
+    "jupyter_core>=4.12,!=5.0.*",
+    "prompt_toolkit>=3.0.30",
+    "pygments",
+    "pyzmq>=17",
+    "traitlets>=5.4",
+]
+
+[project.optional-dependencies]
+test = [
+    "pexpect",
+    "pytest",
+    "flaky",
+]
+
+[project.scripts]
+jupyter-console = "jupyter_console.app:main"
+
+[project.urls]
+Homepage = "https://jupyter.org"
+
+[tool.hatch.version]
+path = "jupyter_console/_version.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/jupyter_console",
+]
 
 [tool.jupyter-releaser]
 skip = ["check-links"]
 
-[tool.check-manifest]
-ignore = [".mailmap", "*.yml", "*.yaml"]
+[pytest.ini_options]
+addopts = "--durations=10"
 
-[tool.tbump.version]
-current = "6.5.1"
-regex = '''
-  (?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)
-  ((?P<channel>a|b|rc|.dev)(?P<release>\d+))?
-'''
+[tool.flake8]
+max-line-length = "99"
+ignore = "W291, E266, E265, E128, E251, E402, E124, E302, W293, E231, E222, W503, E126, E121, W391, E226, E127, W504"
 
-[tool.tbump.git]
-message_template = "Bump to {new_version}"
-tag_template = "v{new_version}"
-
-[[tool.tbump.file]]
-src = "jupyter_console/_version.py"

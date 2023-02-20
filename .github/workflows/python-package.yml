@@ -45,9 +45,9 @@ jobs:
      - uses: actions/setup-python@v2
      - name: Linting
        run: |
-         pip install check-manifest mypy
-         check-manifest
+         pip install Flake8-pyproject mypy
          mypy jupyter_console
+         flake8 jupyter_console
 
   check_release:
     runs-on: ubuntu-latest
