@@ -9,12 +9,12 @@ The recommended way to make a release is to use [`jupyter_releaser`](https://git
 ### Prerequisites
 
 - First check that the CHANGELOG.md is up to date for the next release version
-- Install packaging requirements: `pip install tbump build tomlkit==0.7.0`
+- Install packaging requirements: `pip install hatch twine`
 
 ### Bump version
 
 - `export version=<NEW_VERSION>`
-- `tbump ${version} --no-push`
+- `hatch version ${version}`
 
 ### Push to GitHub
 
@@ -27,6 +27,6 @@ git push upstream && git push upstream --tags
 ```bash
 rm -rf dist/*
 rm -rf build/*
-python -m build .
+hatch build .
 twine upload dist/*
 ```
