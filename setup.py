@@ -59,7 +59,7 @@ setup_args = dict(
         'traitlets>=5.4'
     ],
     extras_require={
-        'test': ['pexpect', 'pytest'],
+        'test': ['pexpect', 'pytest', 'flaky'],
     },
     python_requires='>=3.7',
     entry_points={
