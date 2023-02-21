@@ -2,6 +2,22 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 6.6.1
+
+([Full Changelog](https://github.com/jupyter/jupyter_console/compare/v6.6.0...0108eacfd6b7ff8bf6c6ef4d8d95a53df86d430b))
+
+### Maintenance and upkeep improvements
+
+- More build system cleanup [#282](https://github.com/jupyter/jupyter_console/pull/282) ([@blink1073](https://github.com/blink1073))
+
+### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/jupyter/jupyter_console/graphs/contributors?from=2023-02-20&to=2023-02-21&type=c))
+
+[@blink1073](https://github.com/search?q=repo%3Ajupyter%2Fjupyter_console+involves%3Ablink1073+updated%3A2023-02-20..2023-02-21&type=Issues)
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 6.6.0
 
 ([Full Changelog](https://github.com/jupyter/jupyter_console/compare/v6.5.1...7a6bbfecac9c34e9a6b26eae6c018cee7622b403))
@@ -17,8 +33,6 @@
 ([GitHub contributors page for this release](https://github.com/jupyter/jupyter_console/graphs/contributors?from=2023-02-13&to=2023-02-20&type=c))
 
 [@blink1073](https://github.com/search?q=repo%3Ajupyter%2Fjupyter_console+involves%3Ablink1073+updated%3A2023-02-13..2023-02-20&type=Issues) | [@dcsaba89](https://github.com/search?q=repo%3Ajupyter%2Fjupyter_console+involves%3Adcsaba89+updated%3A2023-02-13..2023-02-20&type=Issues)
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 6.5.1
 
