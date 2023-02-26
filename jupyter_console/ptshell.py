@@ -839,7 +839,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
     async def handle_external_iopub(self, loop=None):
         while self.keep_running:
             # we need to check for keep_running from time to time
-            poll_result = await self.client.iopub_channel.socket.poll(500)
+            poll_result = run_sync(self.client.iopub_channel.socket.poll)(500)
             if poll_result:
                 self.handle_iopub()
 
