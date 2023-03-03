@@ -1,6 +1,6 @@
 import inspect
 import typing as t
-from jupyter_core.utils import run_sync as _run_sync
+from jupyter_core.utils import run_sync as _run_sync, ensure_async
 
 
 T = t.TypeVar("T")
