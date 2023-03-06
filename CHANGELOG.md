@@ -2,6 +2,22 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 6.6.3
+
+([Full Changelog](https://github.com/jupyter/jupyter_console/compare/v6.6.2...2c444cbd51c4a4ae8b2bd81b654687bb1fefa802))
+
+### Bugs fixed
+
+- Fix handle_external_iopub again [#286](https://github.com/jupyter/jupyter_console/pull/286) ([@blink1073](https://github.com/blink1073))
+
+### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/jupyter/jupyter_console/graphs/contributors?from=2023-02-27&to=2023-03-06&type=c))
+
+[@blink1073](https://github.com/search?q=repo%3Ajupyter%2Fjupyter_console+involves%3Ablink1073+updated%3A2023-02-27..2023-03-06&type=Issues)
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 6.6.2
 
 ([Full Changelog](https://github.com/jupyter/jupyter_console/compare/v6.6.1...27b0ffeb4e71f317bcd1ad2d3af41e0458bd05d4))
@@ -15,8 +31,6 @@
 ([GitHub contributors page for this release](https://github.com/jupyter/jupyter_console/graphs/contributors?from=2023-02-21&to=2023-02-27&type=c))
 
 [@blink1073](https://github.com/search?q=repo%3Ajupyter%2Fjupyter_console+involves%3Ablink1073+updated%3A2023-02-21..2023-02-27&type=Issues)
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 6.6.1
 
