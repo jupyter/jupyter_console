@@ -25,7 +25,26 @@ def test_console_starts():
     p, pexpect, t = start_console()
     p.sendline("5")
     p.expect([r"Out\[\d+\]: 5", pexpect.EOF], timeout=t)
-    p.expect([r"In \[\d+\]", pexpect.EOF], timeout=t)
+    p.expect(["\n", "\n", r"In \[\d+\]", pexpect.EOF], timeout=t)
+    stop_console(p, pexpect, t)
+
+@flaky
+@pytest.mark.skipif(should_skip, reason="not supported")
+def test_console_starts_nonl():
+    """test that `jupyter console` starts a terminal"""
+    p, pexpect, t = start_console(['--ZMQTerminalInteractiveShell.separate_in=""'])
+    p.sendline("5")
+    p.expect([r"Out\[\d+\]: 5", pexpect.EOF], timeout=t)
+    p.expect([r"(?<!\n)\n", r"In \[\d+\]", pexpect.EOF], timeout=t)
+    stop_console(p, pexpect, t)
+
+@pytest.mark.xfail(reason='testing the regex to p.expect',strict=True)
+def test_console_starts_nonl_correct_matcher():
+    """test that `jupyter console` starts a terminal"""
+    p, pexpect, t = start_console()
+    p.sendline("5")
+    p.expect([r"Out\[\d+\]: 5", pexpect.EOF], timeout=t)
+    p.expect([r"(?<!\n)\n", r"In \[\d+\]", pexpect.EOF], timeout=2)
     stop_console(p, pexpect, t)
 
 def test_help_output():
@@ -59,11 +78,11 @@ def stop_console(p, pexpect, t):
         p.terminate()
 
 
-def start_console():
+def start_console(args=()):
     "Start `jupyter console` using pexpect"
     import pexpect
     
-    args = ['-m', 'jupyter_console', '--colors=NoColor']
+    args = ['-m', 'jupyter_console', '--colors=NoColor'] + list(args)
     cmd = sys.executable
     env = os.environ.copy()
     env["JUPYTER_CONSOLE_TEST"] = "1"

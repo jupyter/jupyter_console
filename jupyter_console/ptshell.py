@@ -19,6 +19,7 @@ from typing import Dict as DictType, Any as AnyType
 
 from zmq import ZMQError
 from IPython.core import page
+from IPython.core.interactiveshell import SeparateUnicode
 from traitlets import (
     Bool,
     Integer,
@@ -325,6 +326,10 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         config=True
     )
 
+    separate_in = SeparateUnicode('\n').tag(config=True)
+    separate_out = SeparateUnicode('\n').tag(config=True)
+    separate_out2 = SeparateUnicode('\n').tag(config=True)
+
     manager = Instance("jupyter_client.KernelManager", allow_none=True)
     client = Instance("jupyter_client.KernelClient", allow_none=True)
 
@@ -398,6 +403,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         ]
 
     def print_out_prompt(self):
+        sys.stdout.write(self.separate_out)
         tokens = self.get_out_prompt_tokens()
         print_formatted_text(PygmentsTokens(tokens), end='',
                              style = self.pt_cli.app.style)
@@ -636,7 +642,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
 
     async def interact(self, loop=None, display_banner=None):
         while self.keep_running:
-            print('\n', end='')
+            print(self.separate_in, end='')
 
             try:
                 code = await self.prompt_for_code()
@@ -901,6 +907,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                         # For multi-line results, start a new line after prompt
                         print()
                     print(text_repr)
+                    sys.stdout.write(self.separate_out2)
 
                     # Remote: add new prompt
                     if not self.from_here(sub_msg):
