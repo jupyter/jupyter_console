@@ -203,6 +203,10 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
               "printf \"\\x1b[38;2;255;100;0mTRUECOLOR\\x1b[0m\\n\"")
     )
 
+    autoindent = Bool(True, config=True,
+        help="Autoindent code entered interactively."
+    )
+
     history_load_length = Integer(1000, config=True,
         help="How many history items to load into memory"
     )
@@ -481,7 +485,10 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             if (not more) and b.accept_handler:
                 b.validate_and_handle()
             else:
-                b.insert_text('\n' + indent)
+                if self.autoindent:
+                    b.insert_text('\n' + indent)
+                else:
+                    b.insert_text('\n')
 
         @kb.add("c-c", filter=has_focus(DEFAULT_BUFFER))
         def _(event):
