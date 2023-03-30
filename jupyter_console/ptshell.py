@@ -372,7 +372,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
     def vi_mode(self):
         if (getattr(self, 'editing_mode', None) == 'vi'
                 and self.prompt_includes_vi_mode):
-            return '['+str(self.pt_cli.app.vi_state.input_mode)[3:6]+'] '
+            return '['+self.pt_cli.app.vi_state.input_mode[3:6]+'] '
         return ''
 
     def get_prompt_tokens(self, ec=None):
