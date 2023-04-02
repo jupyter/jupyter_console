@@ -15,7 +15,7 @@ from tempfile import TemporaryDirectory
 import time
 from warnings import warn
 
-from typing import Dict as DictType, Any as AnyType
+from typing import Dict as DictType, Any as AnyType, Union as UnionType
 
 from zmq import ZMQError
 from IPython.core import page
@@ -44,6 +44,7 @@ if not PTK3:
     # use_ayncio_event_loop obsolete in PKT3
     from prompt_toolkit.eventloop.defaults import use_asyncio_event_loop
 
+from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
@@ -188,6 +189,8 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         help="Shortcut style to use at the prompt. 'vi' or 'emacs'.",
     )
 
+    auto_suggest: UnionType[AutoSuggestFromHistory,  None] = None
+
     highlighting_style = Unicode('', config=True,
         help="The name of a Pygments style to use for syntax highlighting"
     )
@@ -325,6 +328,15 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         config=True
     )
 
+    autosuggestions_provider = Unicode(
+        "AutoSuggestFromHistory",
+        help="Specifies from which source automatic suggestions are provided. "
+        "Can be set to 'AutoSuggestFromHistory'``, "
+        " or ``None`` to disable automatic suggestions. "
+        "Default is `'AutoSuggestFromHistory`'.",
+        allow_none=True,
+    ).tag(config=True)
+
     manager = Instance("jupyter_client.KernelManager", allow_none=True)
     client = Instance("jupyter_client.KernelClient", allow_none=True)
 
@@ -350,6 +362,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         self.init_io()
 
         self.init_kernel_info()
+        self._set_autosuggestions()
         self.init_prompt_toolkit_cli()
         self.keep_running = True
         self.execution_count = 1
@@ -443,6 +456,14 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
     def show_banner(self):
         print(self.banner.format(version=__version__,
                          kernel_banner=self.kernel_info.get('banner', '')),end='',flush=True)
+
+    def _set_autosuggestions(self):
+        if self.autosuggestions_provider is None:
+            self.auto_suggest = None
+        elif self.autosuggestions_provider == "AutoSuggestFromHistory":
+            self.auto_suggest = AutoSuggestFromHistory()
+        else:
+            raise ValueError("No valid provider.")
 
     def init_prompt_toolkit_cli(self):
         if self.simple_prompt or ('JUPYTER_CONSOLE_TEST' in os.environ):
@@ -555,6 +576,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             use_asyncio_event_loop()
 
         self.pt_cli = PromptSession(
+            auto_suggest=self.auto_suggest,
             message=(lambda: PygmentsTokens(self.get_prompt_tokens())),
             multiline=True,
             complete_style=self.pt_complete_style,
