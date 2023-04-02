@@ -45,6 +45,7 @@ if not PTK3:
     from prompt_toolkit.eventloop.defaults import use_asyncio_event_loop
 
 from prompt_toolkit.completion import Completer, Completion
+from prompt_toolkit.cursor_shapes import ModalCursorShapeConfig
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
 from prompt_toolkit.filters import (
@@ -321,6 +322,19 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         help="Display the current vi mode (when using vi editing mode)."
     ).tag(config=True)
 
+    modal_cursor = Bool(
+        False, help="Changes cursor shape depending on vi mode"
+    ).tag(config=True)
+
+    ttimeoutlen = Float(
+        0.01,
+        config=True,
+        help=(
+            "When to flush the input (For flushing escape keys.);"
+            " like Vim’s ttimeoutlen option"
+        )
+    )
+
     highlight_matching_brackets = Bool(True, help="Highlight matching brackets.",).tag(
         config=True
     )
@@ -572,7 +586,11 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             style=style,
             input_processors=input_processors,
             color_depth=(ColorDepth.TRUE_COLOR if self.true_color else None),
+            cursor=ModalCursorShapeConfig() if self.modal_cursor else None,
         )
+
+        if self.modal_cursor:
+            self.pt_cli.app.ttimeoutlen = self.ttimeoutlen
 
     async def prompt_for_code(self):
         if self.next_input:
