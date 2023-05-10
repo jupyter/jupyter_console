@@ -76,7 +76,7 @@ from pygments.lexers import get_lexer_by_name
 from pygments.util import ClassNotFound
 from pygments.token import Token
 
-from jupyter_client.utils import run_sync
+from jupyter_console.utils import run_sync, ensure_async
 
 
 def ask_yes_no(prompt, default=None, interrupt=None):
@@ -316,7 +316,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         ),
         default_value="multicolumn",
     ).tag(config=True)
-    
+
     prompt_includes_vi_mode = Bool(True,
         help="Display the current vi mode (when using vi editing mode)."
     ).tag(config=True)
@@ -374,7 +374,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                 and self.prompt_includes_vi_mode):
             return '['+str(self.pt_cli.app.vi_state.input_mode)[3:6]+'] '
         return ''
-    
+
     def get_prompt_tokens(self, ec=None):
         if ec is None:
             ec = self.execution_count
@@ -840,9 +840,10 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
     async def handle_external_iopub(self, loop=None):
         while self.keep_running:
             # we need to check for keep_running from time to time
-            poll_result = await self.client.iopub_channel.socket.poll(500)
+            poll_result = await ensure_async(self.client.iopub_channel.socket.poll(0))
             if poll_result:
                 self.handle_iopub()
+            await asyncio.sleep(0.5)
 
     def handle_iopub(self, msg_id=''):
         """Process messages on the IOPub channel
