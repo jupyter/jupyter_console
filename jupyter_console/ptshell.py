@@ -639,7 +639,9 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
             print('\n', end='')
 
             try:
+                real_handler = signal.getsignal(signal.SIGINT)
                 code = await self.prompt_for_code()
+                signal.signal(signal.SIGINT, real_handler)
             except EOFError:
                 if (not self.confirm_exit) or \
                         ask_yes_no('Do you really want to exit ([y]/n)?', 'y', 'n'):
