@@ -4,40 +4,32 @@ from __future__ import print_function
 import asyncio
 import base64
 import errno
-from getpass import getpass
-from io import BytesIO
+import inspect
 import os
-from queue import Empty
 import signal
 import subprocess
 import sys
-from tempfile import TemporaryDirectory
 import time
+from getpass import getpass
+from io import BytesIO
+from queue import Empty
+from tempfile import TemporaryDirectory
+from typing import Any as AnyType
+from typing import Dict as DictType
 from warnings import warn
 
-from typing import Dict as DictType, Any as AnyType
-
-from zmq import ZMQError
 from IPython.core import page
-from traitlets import (
-    Bool,
-    Integer,
-    Float,
-    Unicode,
-    List,
-    Dict,
-    Enum,
-    Instance,
-    Any,
-)
-from traitlets.config import SingletonConfigurable
-
-from .completer import ZMQCompleter
-from .zmqhistory import ZMQHistoryManager
-from . import __version__
 
 # Discriminate version3 for asyncio
 from prompt_toolkit import __version__ as ptk_version
+from traitlets import Any, Bool, Dict, Enum, Float, Instance, Integer, List, Unicode
+from traitlets.config import SingletonConfigurable
+from zmq import ZMQError
+
+from . import __version__
+from .completer import ZMQCompleter
+from .zmqhistory import ZMQHistoryManager
+
 PTK3 = ptk_version.startswith('3.')
 
 if not PTK3:
@@ -49,34 +41,33 @@ from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
 from prompt_toolkit.filters import (
     Condition,
+    emacs_insert_mode,
     has_focus,
     has_selection,
-    vi_insert_mode,
-    emacs_insert_mode,
     is_done,
+    vi_insert_mode,
 )
+from prompt_toolkit.formatted_text import PygmentsTokens
 from prompt_toolkit.history import InMemoryHistory
-from prompt_toolkit.shortcuts.prompt import PromptSession
-from prompt_toolkit.shortcuts import print_formatted_text, CompleteStyle
 from prompt_toolkit.key_binding import KeyBindings
-from prompt_toolkit.lexers import PygmentsLexer
 from prompt_toolkit.layout.processors import (
     ConditionalProcessor,
     HighlightMatchingBracketProcessor,
 )
+from prompt_toolkit.lexers import PygmentsLexer
+from prompt_toolkit.output import ColorDepth
+from prompt_toolkit.shortcuts import CompleteStyle, print_formatted_text
+from prompt_toolkit.shortcuts.prompt import PromptSession
 from prompt_toolkit.styles import merge_styles
 from prompt_toolkit.styles.pygments import (style_from_pygments_cls,
                                             style_from_pygments_dict)
-from prompt_toolkit.formatted_text import PygmentsTokens
-from prompt_toolkit.output import ColorDepth
 from prompt_toolkit.utils import suspend_to_background_supported
-
-from pygments.styles import get_style_by_name
 from pygments.lexers import get_lexer_by_name
-from pygments.util import ClassNotFound
+from pygments.styles import get_style_by_name
 from pygments.token import Token
+from pygments.util import ClassNotFound
 
-from jupyter_console.utils import run_sync, ensure_async
+from jupyter_console.utils import ensure_async, run_sync
 
 
 def ask_yes_no(prompt, default=None, interrupt=None):
@@ -329,6 +320,7 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
     client = Instance("jupyter_client.KernelClient", allow_none=True)
 
     def _client_changed(self, name, old, new):
+        assert inspect.iscoroutinefunction(new.shell_channel.get_msg), new.shell_channel
         self.session_id = new.session.session
     session_id = Unicode()
 
