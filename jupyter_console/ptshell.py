@@ -814,7 +814,8 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
 
     def from_here(self, msg):
         """Return whether a message is from this session"""
-        return msg['parent_header'].get("session", self.session_id) == self.session_id
+        parent_header = msg['parent_header'] or {}
+        return parent_header.get("session", self.session_id) == self.session_id
 
     def include_output(self, msg):
         """Return whether we should include a given output message"""
