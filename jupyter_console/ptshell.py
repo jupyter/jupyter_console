@@ -546,12 +546,13 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
         if not PTK3:
             use_asyncio_event_loop()
 
+        self.lexer = get_pygments_lexer(lexer)
         self.pt_cli = PromptSession(
             message=(lambda: PygmentsTokens(self.get_prompt_tokens())),
             multiline=True,
             complete_style=self.pt_complete_style,
             editing_mode=editing_mode,
-            lexer=PygmentsLexer(get_pygments_lexer(lexer)),
+            lexer=PygmentsLexer(self.lexer),
             prompt_continuation=(
                 lambda width, lineno, is_soft_wrap: PygmentsTokens(
                     self.get_continuation_tokens(width)
@@ -861,13 +862,17 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                         if self._pending_clearoutput:
                             print("\r", end="")
                             self._pending_clearoutput = False
-                        print(sub_msg["content"]["text"], end="")
+                        print_formatted_text(sub_msg["content"]["text"], end="")
+                        if not self.from_here(sub_msg):
+                            print_formatted_text()
                         sys.stdout.flush()
                     elif sub_msg["content"]["name"] == "stderr":
                         if self._pending_clearoutput:
                             print("\r", file=sys.stderr, end="")
                             self._pending_clearoutput = False
-                        print(sub_msg["content"]["text"], file=sys.stderr, end="")
+                        print_formatted_text(
+                            sub_msg["content"]["text"], file=sys.stderr, end=""
+                        )
                         sys.stderr.flush()
 
                 elif msg_type == 'execute_result':
@@ -876,7 +881,11 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                         self._pending_clearoutput = False
                     self.execution_count = int(sub_msg["content"]["execution_count"])
                     if not self.from_here(sub_msg):
-                        sys.stdout.write(self.other_output_prefix)
+                        print_formatted_text(
+                            PygmentsTokens(self.get_remote_prompt_tokens()),
+                            style=self.pt_cli.app.style,
+                            end="",
+                        )
                     format_dict = sub_msg["content"]["data"]
                     self.handle_rich_data(format_dict)
 
@@ -891,39 +900,51 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                     text_repr = format_dict['text/plain']
                     if '\n' in text_repr:
                         # For multi-line results, start a new line after prompt
-                        print()
-                    print(text_repr)
+                        print_formatted_text()
+                    print_formatted_text(text_repr)
 
-                    # Remote: add new prompt
                     if not self.from_here(sub_msg):
-                        sys.stdout.write('\n')
+                        # Because this occurs after the execute_input, we need to make sure our next prompt looks correct again
+                        self.execution_count += 1
+                        print_formatted_text()
                         sys.stdout.flush()
-                        self.print_remote_prompt()
 
                 elif msg_type == 'display_data':
                     data = sub_msg["content"]["data"]
                     handled = self.handle_rich_data(data)
                     if not handled:
                         if not self.from_here(sub_msg):
-                            sys.stdout.write(self.other_output_prefix)
+                            print_formatted_text(
+                                PygmentsTokens(self.get_other_prompt_tokens()),
+                                style=self.pt_cli.app.style,
+                                end="",
+                            )
                         # if it was an image, we handled it by now
-                        if 'text/plain' in data:
-                            print(data['text/plain'])
+                        if "text/plain" in data:
+                            print_formatted_text(data["text/plain"])
 
                 # If execute input: print it
                 elif msg_type == 'execute_input':
                     content = sub_msg['content']
                     ec = content.get('execution_count', self.execution_count - 1)
 
-                    # New line
-                    sys.stdout.write('\n')
-                    sys.stdout.flush()
-
-                    # With `Remote In [3]: `
-                    self.print_remote_prompt(ec=ec)
-
                     # And the code
-                    sys.stdout.write(content['code'] + '\n')
+                    first_prompt = (
+                        self.get_remote_prompt_tokens() + self.get_prompt_tokens(ec=ec)
+                    )
+                    remote_prompt_len = len("".join(t for _, t in first_prompt))
+                    continuation = self.get_continuation_tokens(remote_prompt_len)
+
+                    tokens = first_prompt[:]
+                    lexer = self.lexer()
+                    for _, t, v in lexer.get_tokens_unprocessed(content["code"]):
+                        tokens.append((t, v))
+                        if v == "\n":
+                            tokens += continuation
+                    print_formatted_text(
+                        PygmentsTokens(tokens), style=self.pt_cli.app.style
+                    )
+                    sys.stdout.flush()
 
                 elif msg_type == 'clear_output':
                     if sub_msg["content"]["wait"]:
@@ -934,6 +955,8 @@ class ZMQTerminalInteractiveShell(SingletonConfigurable):
                 elif msg_type == 'error':
                     for frame in sub_msg["content"]["traceback"]:
                         print(frame, file=sys.stderr)
+                    # Trigger prompt redraw
+                    print_formatted_text("", end="")
 
     _imagemime = {
         'image/png': 'png',
